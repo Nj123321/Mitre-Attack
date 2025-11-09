@@ -5,4 +5,8 @@ __pycache__/
 *.pyo
 *.pyd
 
+# neo4j local volumes
+data
+logs
+
 attack-stix-injestion/resources/mitre-attack-data

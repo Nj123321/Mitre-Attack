@@ -1,8 +1,13 @@
-from fastapi import FastAPI
-from .api import models, matrix  # imports routers
+import uvicorn
 
-app = FastAPI()
+# hacky shared lib solution
+import sys, os
 
-# Include routers (nesting)
-app.include_router(models.router)
-app.include_router(matrix.router)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+print("PROJECT_ROOT: " + PROJECT_ROOT)
+# hacky solution --- end
+
+if __name__ == "__main__":
+    uvicorn.run("app.app:app", host="0.0.0.0", port=8000, reload=True)

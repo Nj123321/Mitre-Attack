@@ -1,6 +1,6 @@
-import model
-from model import *
-from neomodel import db
+import lib.model
+from lib.model import *
+from neomodel import db, install_all_labels, config
 
 import time
 
@@ -8,7 +8,8 @@ class Repository:
     SKIPPED = ["x-mitre-collection", "x-mitre-matrix", "marking-definition", "identity"]
     
     def __init__(self):
-        model.init_models()
+        config.DATABASE_URL = 'bolt://:@localhost:7687'  # default
+        install_all_labels()
     
     def load_database(self, json_objects):
         print("started loading")
@@ -16,7 +17,9 @@ class Repository:
         queued_relationships = []
         with db.transaction: 
             for json_model_rep in json_objects:
-                object_class = self.find_model(json_model_rep)
+                if json_model_rep["type"] in self.SKIPPED:
+                    continue
+                object_class = find_model_from_json(json_model_rep)
                 if object_class is None:
                     continue
                 if object_class is Relationship:
@@ -66,50 +69,3 @@ class Repository:
                     case "revoked-by":
                         source.revoked_by.connect(target, relation)
         print("finsihed loading")
-            # for relationships in queued_relationships:
-                
-    def find_model(self, model):
-        model_type = model["type"]
-        match model_type:
-            # stix object data
-            case "attack-pattern":
-                if model["x_mitre_is_subtechnique"] == True:
-                    return SubTechnique
-                return Technique
-            case "campaign":
-                return Campaign
-            case "course-of-action":
-                return Mitigation
-            # case "Identity":
-                # return 
-            case "intrusion-set":
-                return Group
-            case "malware":
-                #software with tool?
-                return Malware
-            case "tool":
-                #software with tool?
-                return Tool
-            # case "MarkingDefinition":
-                # pass
-            case "relationship":
-                return Relationship
-            
-            # custom stix types
-            case "x-mitre-analytic":
-                return Analytic
-            # case "x-mitre-collection":
-                # return Collection()
-            case "x-mitre-data-component":
-                return DataComponent
-            case "x-mitre-data-source":
-                return DataSource
-            case "x-mitre-detection-strategy":
-                return DetectionStrategy
-            # case "x-mitre-matrix":
-                # return Matrix()
-            case "x-mitre-tactic":
-                return Tactic
-        if model_type in self.SKIPPED:
-            return
-        raise Exception("Could match model with: " + model_type)

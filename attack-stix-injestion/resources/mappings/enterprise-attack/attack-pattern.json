@@ -4,6 +4,7 @@
         "related_tactics": "kill_chain_phases.[*].phase_name"
     },
     "derived_labels": [
+        "x_mitre_domains",
         "x_mitre_platforms"
     ],
     "attributes": {

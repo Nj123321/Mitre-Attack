@@ -14,4 +14,7 @@ class Analytic(VersionedObject, MitreBase):
         "IaaS",
         "Linux",
         "ESXi",
+        "enterpriseattack",
+        "mobileattack",
+        "icsattack",
     ]

@@ -1,3 +1,3 @@
 def clean_label_str(label):
-    label = label.replace(" ", "").replace("/", "")
+    label = label.replace(" ", "").replace("/", "").replace("-","")
     return label

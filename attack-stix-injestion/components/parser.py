@@ -5,8 +5,6 @@
 # dyanmcailly creates filters based on class name -> file mapping
 import json
 import os
-from typing import Any, Union
-import re
 import lib.constants
 from datetime import datetime, timezone
 
@@ -19,7 +17,10 @@ class Parser:
     def __init__(self):
         self.mapping_cache = {}
         print("initilaizing parser")
-    def parse_data(self, json_objects):
+    
+    # domain = mitre attack domain for loading in mapping files
+    def parse_data(self, json_objects, domain):
+        self.domain = domain
         mapped_by_id = {}
         for obj in json_objects:
             if obj["type"] == "x-mitre-collection":
@@ -72,7 +73,8 @@ class Parser:
                 pass
         new_json["mapipieline_added_labels"] = json_obj.pop("mapipieline_added_labels")
         if json_obj:
-            raise Exception(obj_type + " why is this not empty: " + str(json_obj))
+            pass
+            # raise Exception(obj_type + " why is this not empty: " + str(json_obj))
         
         # put back the data
         for k, v in new_json.items():
@@ -90,9 +92,15 @@ class Parser:
         print("before")
         mapping = self.load_mapping_cache(obj["type"])
         for label_path in mapping["derived_labels"]:
+            split_path = label_path.split("@", 1)
+            search_path = split_path[0]
+            required = split_path[1] if len(split_path) > 1 else False
             try:
-                extracted_labels = self._extract(obj, label_path)
+                extracted_labels = self._extract(obj, search_path)
             except KeyError:
+                if required:
+                    # TODO: extract out exceptions into a seperate file
+                    raise Exception("Required label \"" + search_path + "\"" + " not found in stix_uuid: " + obj["id"])
                 continue
             
             # either a list of labels or a singular value
@@ -109,13 +117,14 @@ class Parser:
         if resource_type in self.mapping_cache:
             return self.mapping_cache[resource_type]
         
-        filepath = os.path.join(self.MAPPING_BASE, resource_type + ".json")
+        filepath = os.path.join(self.MAPPING_BASE, self.domain, resource_type + ".json")
         if not os.path.isfile(filepath):
             raise Exception("Could not find mappings for: " + resource_type)
         with open(filepath, "r") as f:
             self.mapping_cache[resource_type] = json.load(f)
         return self.mapping_cache[resource_type]
     
+    # dig in json object using path
     def _extract(self, json_obj, path, toDelete=False):
         if path == "[*]":
             raise Exception("Invalid Path")

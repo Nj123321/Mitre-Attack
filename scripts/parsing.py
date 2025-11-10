@@ -10,9 +10,9 @@ import json
 import stix2
 import time
 
-fn = "attack-stix-data/mobile-attack/mobile-attack.json"
-fn = "attack-stix-data/enterprise-attack/enterprise-attack.json"
-fn = "attack-stix-injestion/resources/mitre-attack-data/enterprise-attack/enterprise-attack.json"
+mobile = "mobile-attack/mobile-attack.json"
+ent = "enterprise-attack/enterprise-attack.json"
+ics = "ics-attack/ics-attack.json"
 
 import os
 
@@ -20,7 +20,7 @@ import lib.constants
 
 project_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 print(project_base)
-fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/enterprise-attack/enterprise-attack.json"
+fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/" + ics
 
 creating_new_mappings = True
 
@@ -74,12 +74,15 @@ def recursive_json_dig(parent, operations, jsonobj, iterator, toDelete):
 
 # graph = Graph("bolt://localhost:7687")
 
+domain = ""
 id_mapping = {}
 print("Bundle contains", len(bundle.objects), "objects")
 for obj in bundle.objects:
     name = obj.__class__.__name__
     if name == "dict":
         name = obj["type"]
+        if name == "x-mitre-matrix":
+            domain = obj["external_references"][0]["external_id"]
     if not isinstance(obj, dict):
         obj = obj.__dict__['_inner']
         name = obj['type']
@@ -90,6 +93,9 @@ for obj in bundle.objects:
         id_mapping[name] = []
     # print("whatthefuck: " + id_mapping[name].ser)
     id_mapping[name].append(obj)
+
+print("found domain: " + domain)
+input("Enter something: ")
     
 for k, v in id_mapping.items():
     print("k: " + str(k) + "   |  length: " + str(len(v)))
@@ -115,7 +121,7 @@ bad_att = [
     ""
 ]
 import os
-directory = "/Users/nathan.jin/Desktop/work/mitreattack/attack-stix-injestion/resources/mappings/"
+directory = "/Users/nathan.jin/Desktop/work/mitreattack/attack-stix-injestion/resources/mappings/" + domain + "/"
 
 # pre-compute intersection
 for name, obj_array in id_mapping.items():
@@ -139,7 +145,7 @@ for name, obj_array in id_mapping.items():
     if name in bad_model:
         continue
     # if name.startswith("x-mitre"):
-        # continue
+    # continue
     print("DEBUG - intersection: " + name)
     if len(intersection) == 0:
         intersection = common_attributes
@@ -155,6 +161,9 @@ for name, obj_array in id_mapping.items():
     mapping_creator = {}
     mapping_creator["derived_attributes"] = {}
     mapping_creator["derived_labels"] = []
+    if name not in ["relationship", "identity", "marking-definition"]:
+        mapping_creator["derived_labels"].append("x_mitre_domains")
+    
     mapping_creator["attributes"] = {}
     mapping_creator["delete"] = []
     

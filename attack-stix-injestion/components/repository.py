@@ -44,9 +44,15 @@ class Repository:
             # nodes if we've updated them before
             relationship_queue = []
             
+            # to associate technique with tactics, have to build custom relationships
+            tactic_cache = {}
+            technique_tactic_relationships = []
+            
             for operation, object_arr in  filtered_objects.items():
                 # remove
                 if operation == "removed":
+                    if user_input == "skip":
+                        continue
                     for uuid in object_arr:
                         model_type, _ = self._type_from_stix_uuid(uuid, True)
                         model_type.nodes.get(stix_uuid=uuid).delete()
@@ -80,16 +86,43 @@ class Repository:
                                 "target_ref": ref,
                                 "relationship_type": "contains"
                             })
+                    if obj_class is Tactic:
+                        # print("putting " + obj_instance.name + " into tactic cache")
+                        # user_input = input("Enter something: ")
+                        tactic_cache[obj_instance.name] = obj_instance.stix_uuid
+                    if obj_class is Technique:
+                        for tactic in obj_dict["related_tactics"]:
+                            tactic = tactic.lower().replace("-", " ")
+                            technique_tactic_relationships.append({
+                                "source_ref": obj_instance.stix_uuid,
+                                "target_tactic_name": tactic,
+                                "relationship_type": "technique_of"
+                            })
                     
                     # add any (new) custom labels to object
                     # TODO: Clear labels if operation is updated
                     parsed_labels = obj_dict.pop("mapipieline_added_labels")
                     for label in parsed_labels:
                         if label not in getattr(obj_instance, "__optional_labels__"):
+                            print(getattr(obj_instance, "__optional_labels__"))
                             raise Exception("unexpected label: " + label + " for class: " + str(obj_class))
                         db.cypher_query(f"MATCH (n:{obj_class.__name__}) WHERE id(n)={obj_instance.element_id.split(":")[-1]} SET n:{label}")
 
                     self.cached_instances[obj_instance.stix_uuid] = obj_instance
+                
+                # resolve tactic names using tactic cache for tactic relationships
+                for tactic_to_technique in technique_tactic_relationships:
+                    resolved_source_ref = None
+                    tactic_name = tactic_to_technique.pop("target_tactic_name")
+                    try:
+                        resolved_source_ref = tactic_cache[tactic_name]
+                    except KeyError:
+                        tactic = Tactic.nodes.get(name=tactic_name)
+                        resolved_source_ref = tactic.stix_uuid
+                        # add to cache for relationship
+                        self.cached_instances[resolved_source_ref] = tactic
+                    tactic_to_technique["target_ref"] = resolved_source_ref
+                    relationship_queue.append(tactic_to_technique)
                 
                 # process relationship queue
                 for relation in relationship_queue:
@@ -120,7 +153,7 @@ class Repository:
         mitre_collection = resource_mapping.pop("current-collection_being_loaded")
         current_id_to_modified = mitre_collection.pop("x_mitre_contents_dictionized")
         try:
-            existing_collection = Collection.nodes.get(stix_uuid=mitre_collection["stix_uuid"])
+            existing_collection = Collection.nodes.first()
             exisiting_id_to_modified = existing_collection.x_mitre_contents_serialized
             
             existing_resources = set(exisiting_id_to_modified.keys())
@@ -150,6 +183,9 @@ class Repository:
     
     def _fill_model_with_dict(self, instantiatedModel, attribute_dict):
         for att_name, _ in type(instantiatedModel).__all_properties__:
+            # standardize name
+            if att_name == "name":
+                attribute_dict[att_name] = attribute_dict[att_name].lower()
             setattr(instantiatedModel, att_name, attribute_dict[att_name])
     
     def _type_from_stix_uuid(self, uuid, deleted=False):

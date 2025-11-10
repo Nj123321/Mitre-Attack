@@ -1,0 +1,18 @@
+{
+    "derived_attributes": {},
+    "derived_labels": [],
+    "attributes": {
+        "created": "created",
+        "description": "description",
+        "stix_uuid": "id",
+        "identity_class": "identity_class",
+        "modified": "modified",
+        "name": "name",
+        "object_marking_refs": "object_marking_refs",
+        "revoked": "revoked",
+        "spec_version": "spec_version",
+        "type": "type",
+        "x_mitre_attack_spec_version": "x_mitre_attack_spec_version"
+    },
+    "delete": []
+}

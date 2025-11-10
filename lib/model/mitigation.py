@@ -2,4 +2,8 @@ from .base_object import *
 from ._mitre_base import MitreBase
 
 class Mitigation(VersionedObject, MitreBase):
-    pass
+    __optional_labels__ = [
+        "enterpriseattack",
+        "mobileattack",
+        "icsattack",
+    ]

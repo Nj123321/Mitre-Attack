@@ -11,4 +11,8 @@ class Tool(VersionedObject, MitreBase):
         "macOS",
         "IaaS",
         "Linux",
+        
+        "enterpriseattack",
+        "mobileattack",
+        "icsattack",
     ]

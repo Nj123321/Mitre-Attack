@@ -1,6 +1,6 @@
 from neomodel import (db, DoesNotExist, StructuredNode, StringProperty, IntegerProperty,
-    RelationshipTo, DateTimeProperty, BooleanProperty, ArrayProperty, RelationshipManager)
-from.relationship import Relationship
+    RelationshipTo, DateTimeProperty, BooleanProperty, ArrayProperty, Relationship)
+from .relationship import Relationship as RelationshipModel
 
 class MitreBase(StructuredNode):
     __abstract_node__ = True
@@ -13,10 +13,10 @@ class MitreBase(StructuredNode):
     # created = DateTimeProperty(required=True)
     # skipping object_marking_refs? - marking-definintoin model
     
-    uses = RelationshipTo('MitreBase', 'USES', model=Relationship)
-    mitigates = RelationshipTo('MitreBase', 'MITIGATES', model=Relationship)
-    subtechnique_of = RelationshipTo('MitreBase', 'SUBTECHNIQUE-OF', model=Relationship)
-    detects = RelationshipTo('MitreBase', 'DETECTS', model=Relationship)
-    attributed_to = RelationshipTo('MitreBase', 'ATTRIBUTED-TO', model=Relationship)
-    targets = RelationshipTo('MitreBase', 'TARGETS', model=Relationship)
-    revoked_by = RelationshipTo('MitreBase', 'REVOKED-BY', model=Relationship)
+    uses = RelationshipTo('MitreBase', 'USES', model=RelationshipModel)
+    mitigates = RelationshipTo('MitreBase', 'MITIGATES', model=RelationshipModel)
+    subtechnique_of = Relationship('MitreBase', 'SUBTECHNIQUE-OF', model=RelationshipModel)
+    detects = RelationshipTo('MitreBase', 'DETECTS', model=RelationshipModel)
+    attributed_to = RelationshipTo('MitreBase', 'ATTRIBUTED-TO', model=RelationshipModel)
+    targets = RelationshipTo('MitreBase', 'TARGETS', model=RelationshipModel)
+    revoked_by = RelationshipTo('MitreBase', 'REVOKED-BY', model=RelationshipModel)

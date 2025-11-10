@@ -2,7 +2,9 @@
     "derived_attributes": {
         "attack_id": "external_references.[0].external_id"
     },
-    "derived_labels": [],
+    "derived_labels": [
+        "x_mitre_domains"
+    ],
     "attributes": {
         "aliases": "aliases",
         "created": "created",

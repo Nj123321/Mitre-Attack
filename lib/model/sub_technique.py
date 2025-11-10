@@ -16,4 +16,8 @@ class SubTechnique(Technique):
         "IaaS",
         "Linux",
         "ESXi",
+        
+        "enterpriseattack",
+        "mobileattack",
+        "icsattack",
     ]

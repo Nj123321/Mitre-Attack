@@ -1,0 +1,14 @@
+{
+    "derived_attributes": {},
+    "derived_labels": [],
+    "attributes": {
+        "created": "created",
+        "created_by_ref": "created_by_ref",
+        "definition": "definition",
+        "definition_type": "definition_type",
+        "stix_uuid": "id",
+        "spec_version": "spec_version",
+        "type": "type"
+    },
+    "delete": []
+}

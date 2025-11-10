@@ -1,8 +1,6 @@
 from neomodel import (db, DoesNotExist, StructuredNode, StringProperty, IntegerProperty,
     RelationshipTo, DateTimeProperty, BooleanProperty, ArrayProperty, RelationshipManager)
 
-from.relationship import Relationship
-
 # extends Stuctured node to allow storage of different versions in Neo4j
 class VersionedObject:
     pass

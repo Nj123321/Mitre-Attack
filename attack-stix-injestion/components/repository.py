@@ -27,7 +27,6 @@ class Repository:
         
         return object_instance, object_class
             
-    
     def load_database(self, id_resource_mapping):
         # custom id defined by parser
         with db.transaction: 
@@ -46,6 +45,7 @@ class Repository:
             relationship_queue = []
             
             for operation, object_arr in  filtered_objects.items():
+                # remove
                 if operation == "removed":
                     for uuid in object_arr:
                         model_type, _ = self._type_from_stix_uuid(uuid, True)
@@ -53,29 +53,37 @@ class Repository:
                     continue
                 
                 # add or update
-                for obj in object_arr:
+                for obj_dict in object_arr:
                     # skip bad objects
-                    if obj["type"] in self.SKIPPED:
+                    if obj_dict["type"] in self.SKIPPED:
                         print("SKIPPED")
                         continue
                     # skip relationships for later
-                    if operation == "added" and obj["type"] == "relationship":
-                        relationship_queue.append(obj)
+                    if operation == "added" and obj_dict["type"] == "relationship":
+                        relationship_queue.append(obj_dict)
                         continue
                     # decorate json obj
-                    if obj["type"] == "attack-pattern":
+                    if obj_dict["type"] == "attack-pattern":
                         try:
-                            obj["x_mitre_is_subtechnique"]
+                            obj_dict["x_mitre_is_subtechnique"]
                         except KeyError:
-                            obj["x_mitre_is_subtechnique"] = False
+                            obj_dict["x_mitre_is_subtechnique"] = False
                     
-                    obj_instance, obj_class = self._instantiate_json(operation, obj)
-                    self._fill_model_with_dict(obj_instance, obj)
+                    obj_instance, obj_class = self._instantiate_json(operation, obj_dict)
+                    self._fill_model_with_dict(obj_instance, obj_dict)
                     obj_instance.save()
+                    
+                    if obj_class is Matrix:
+                        for ref in obj_dict["tactic_refs"]:
+                            relationship_queue.append({
+                                "source_ref": obj_instance.stix_uuid,
+                                "target_ref": ref,
+                                "relationship_type": "contains"
+                            })
                     
                     # add any (new) custom labels to object
                     # TODO: Clear labels if operation is updated
-                    parsed_labels = obj.pop("mapipieline_added_labels")
+                    parsed_labels = obj_dict.pop("mapipieline_added_labels")
                     for label in parsed_labels:
                         if label not in getattr(obj_instance, "__optional_labels__"):
                             raise Exception("unexpected label: " + label + " for class: " + str(obj_class))
@@ -85,28 +93,21 @@ class Repository:
                 
                 # process relationship queue
                 for relation in relationship_queue:
+                    print(relation)
                     source_ref = relation.pop("source_ref")
                     target_ref = relation.pop("target_ref")
                     
                     source = self._load_model_from_stix_uuid(source_ref)
                     target = self._load_model_from_stix_uuid(target_ref)
-                    print(relation)
-                    print("relatinoid: " + relation["stix_uuid"])
-                    match relation["relationship_type"]:
-                        case "uses":
-                            source.uses.connect(target, relation)
-                        case "mitigates":
-                            source.mitigates.connect(target, relation)
-                        case "subtechnique-of":
-                            source.subtechnique_of.connect(target, relation)
-                        case "detects":
-                            source.detects.connect(target, relation)
-                        case "attributed-to":
-                            source.attributed_to.connect(target, relation)
-                        case "targets":
-                            source.targets.connect(target, relation)
-                        case "revoked-by":
-                            source.revoked_by.connect(target, relation)
+                    relatinoship_type = relation.pop("relationship_type")
+                    # for stix relationship types
+                    relatinoship_type = relatinoship_type.replace("-", "_")
+                    
+                    # if there is remaining metadata or a custom relationship
+                    if relation:
+                        getattr(source, relatinoship_type).connect(target, relation)
+                    else:
+                        getattr(source, relatinoship_type).connect(target)
                 
         
     # returns bundles of objects that need change

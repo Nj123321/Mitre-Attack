@@ -102,7 +102,7 @@ class Repository:
         try:
             return self.cached_instances[uuid]
         except KeyError:
-            model, _ = self._type_from_stix_uuid(uuid)
+            model, _ = self._type_from_stix_uuid(uuid, True)
             self.cached_instances[uuid] = model.nodes.get(stix_uuid=uuid)
             return self.cached_instances[uuid]
     

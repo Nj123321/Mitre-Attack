@@ -88,4 +88,4 @@ def find_model_from_json(model_json, delete=False):
             case "x-mitre-tactic":
                 return Tactic
     except KeyError:
-        raise Exception("Could match model with: " + model_type)
+        raise Exception("Could match model with: \"" + model_type + "\"")

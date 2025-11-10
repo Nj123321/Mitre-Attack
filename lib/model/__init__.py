@@ -40,7 +40,7 @@ MODEL_LIST = [
     Tool,
 ]
 
-def find_model_from_json(model_json):
+def find_model_from_json(model_json, delete=False):
     print("matching model for: " + str(model_json))
     model_type = model_json["type"]
     print()
@@ -48,6 +48,8 @@ def find_model_from_json(model_json):
         match model_type:
             # stix object data
             case "attack-pattern":
+                if delete:
+                    return Technique
                 if model_json["x_mitre_is_subtechnique"] == True:
                     return SubTechnique
                 return Technique
@@ -73,8 +75,8 @@ def find_model_from_json(model_json):
             # custom stix types
             case "x-mitre-analytic":
                 return Analytic
-            # case "x-mitre-collection":
-                # return Collection()
+            case "x-mitre-collection":
+                return Collection
             case "x-mitre-data-component":
                 return DataComponent
             case "x-mitre-data-source":

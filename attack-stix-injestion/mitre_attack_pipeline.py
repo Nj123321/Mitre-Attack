@@ -8,7 +8,7 @@ class MitreAttackPipeline:
         self.repository = Repository()
     
     def run(self):
-        data = self.loader.load_data("enterprise-attack", "18.0")
+        data = self.loader.load_data("enterprise-attack")
         parsed_data = self.parser.parse_data(data)
         self.repository.load_database(parsed_data)
         

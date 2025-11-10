@@ -4,7 +4,7 @@
         "created": "created",
         "created_by_ref": "created_by_ref",
         "description": "description",
-        "id": "id",
+        "stix_uuid": "id",
         "modified": "modified",
         "name": "name",
         "object_marking_refs": "object_marking_refs",

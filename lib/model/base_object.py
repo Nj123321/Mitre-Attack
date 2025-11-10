@@ -6,12 +6,12 @@ from.relationship import Relationship
 # extends Stuctured node to allow storage of different versions in Neo4j
 class VersionedObject:
     pass
-#     attack_uuid = StringProperty(unique_index=True,required = True)
+#     stix_uuid = StringProperty(unique_index=True,required = True)
 #     attack_id = StringProperty(required = True)
 
 #     next_version = RelationshipTo('VersionedObject', 'NEXT_VERSION')
 #     def save(self, *args, **kwargs):
-#         own_uuid = self.attack_uuid
+#         own_uuid = self.stix_uuid
 #         if own_uuid is None:
 #             raise "UUID Property Required for Versioned Objects"
 #         # with db.transaction: 
@@ -51,7 +51,7 @@ class VersionedObject:
 #         base = self.base_model
 #         if base is None:
 #             # will raise error if not existing
-#             return BaseObject.nodes.get(uuid=self.attack_uuid)
+#             return BaseObject.nodes.get(uuid=self.stix_uuid)
 #         return base
 #     def _updateVersion(base_model):
 #         base_model

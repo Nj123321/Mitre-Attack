@@ -3,7 +3,7 @@
     "attributes": {
         "created": "created",
         "description": "description",
-        "id": "id",
+        "stix_uuid": "id",
         "identity_class": "identity_class",
         "modified": "modified",
         "name": "name",

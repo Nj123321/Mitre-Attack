@@ -8,7 +8,7 @@ ALLOWED_RESOURCES = {model.__name__: model for model in MODEL_LIST}
 print(ALLOWED_RESOURCES)
 
 related_nodes = """
-MATCH (n {attack_uuid: $uuid})-[r]-(m)
+MATCH (n {stix_uuid: $uuid})-[r]-(m)
 RETURN type(r), m
 """
 
@@ -23,7 +23,7 @@ def get_model(resource: str, uuid: str = Query(..., description="UUID of the obj
         raise HTTPException(status_code=404, detail=f"Unknown resource '{resource}'")
 
     print("finding object:")
-    found_object = ALLOWED_RESOURCES[resource].nodes.get(attack_uuid=uuid)
+    found_object = ALLOWED_RESOURCES[resource].nodes.get(stix_uuid=uuid)
     print("woogliewoo")
     response["object"]=found_object.__properties__
     

@@ -5,7 +5,7 @@
         "created_by_ref": "created_by_ref",
         "definition": "definition",
         "definition_type": "definition_type",
-        "id": "id",
+        "stix_uuid": "id",
         "spec_version": "spec_version",
         "type": "type"
     },

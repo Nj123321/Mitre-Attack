@@ -8,7 +8,10 @@ import os
 from typing import Any, Union
 import re
 import lib.constants
+from datetime import datetime, timezone
 
+# creates id -> object mapping, for faster lookup in repository layer
+# also handles trasnfomations / labels / validation
 class Parser:
     REMOVED_VALUES = ["object_marking_refs"]
     MAPPING_BASE = "resources/mappings/"
@@ -17,15 +20,35 @@ class Parser:
         self.mapping_cache = {}
         print("initilaizing parser")
     def parse_data(self, json_objects):
+        mapped_by_id = {}
         for obj in json_objects:
-            print(obj)
-            print("debugging parser - " + obj["id"])
+            if obj["type"] == "x-mitre-collection":
+                obj["mapipieline_added_labels"] = set()
+                mapped_by_id["current-collection_being_loaded"] = self._transform_collection_mappings(obj)
+                continue
+            try:
+                mapped_by_id[obj["id"]]
+                raise Exception("dupicliate ids not alllowed: " + mapped_by_id["id"])
+            except KeyError:
+                pass
+            mapped_by_id[obj["id"]] = obj
             self._remove_common_fields(obj)
             self._transform_fields(obj)
-            self._map_to_database_keys(obj)
-            self._add_custom_objects(obj, json_objects)
+            self._add_custom_objects(obj)
             self._add_labels(obj)
-        return json_objects
+        return mapped_by_id
+    
+    def _transform_collection_mappings(self, mitre_collection):
+        id_to_updated_mappings = {}
+        for obj in mitre_collection.pop("x_mitre_contents"):
+            time_stamp = obj["object_modified"]
+            time_stamp = datetime.strptime(time_stamp, "%Y-%m-%dT%H:%M:%S.%fZ")
+            time_stamp = time_stamp.replace(tzinfo=timezone.utc).timestamp()
+            id_to_updated_mappings[obj["object_ref"]] = time_stamp
+        mitre_collection["x_mitre_contents_dictionized"] = id_to_updated_mappings
+        mitre_collection["stix_uuid"] = mitre_collection["id"]
+        return mitre_collection
+            
     # extract out keys, etc, transfomration, not changing keys just restructuring
     def _transform_fields(self, json_obj):
         pass
@@ -47,10 +70,7 @@ class Parser:
         
         for k in self.REMOVED_VALUES:
             json_obj.pop(k, None)
-    def _map_to_database_keys(self, json_obj):
-        json_obj["attack_uuid"] = json_obj["id"]
-        json_obj.pop("id")
-    def _add_custom_objects(self, obj, json_objects):
+    def _add_custom_objects(self, obj):
         try:
             obj["attack_id"] = obj["external_references"][0]["external_id"]
         except KeyError: 

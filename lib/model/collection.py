@@ -1,6 +1,6 @@
-from .base_object import *
-from ._mitre_base import MitreBase
+from neomodel import (db, DoesNotExist, StructuredNode, StringProperty, IntegerProperty,
+    RelationshipTo, DateTimeProperty, JSONProperty, ArrayProperty, RelationshipManager)
 
-class Collection(VersionedObject, MitreBase):
-    def hello():
-        pass
+class Collection(StructuredNode):
+    stix_uuid = StringProperty(required=True, unique_index=True)
+    x_mitre_contents_serialized = JSONProperty(default={})

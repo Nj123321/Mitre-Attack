@@ -1,7 +1,6 @@
 from git import Repo
 import os
 from stix2 import MemoryStore
-from stix2 import Relationship
 
 # loader handles validatoins
 class Loader:
@@ -19,10 +18,13 @@ class Loader:
             print(f"Cloning new repo from {repo_url} into {dest_dir}")
             Repo.clone_from(repo_url, dest_dir)
         print("finsihed cloning")
-    def load_data(self, domain, version):
+    def load_data(self, domain, version="latest"):
         """get ATT&CK STIX data for a given domain and version. Domain should be 'enterprise-attack', 'mobile-attack' or 'ics-attack'. Branch should typically be master."""
         src = MemoryStore()
-        src.load_from_file(os.path.join(self.base_url, domain, f"{domain}-{version}.json"))
+        if version == "latest":
+            src.load_from_file(os.path.join(self.base_url, domain, f"{domain}.json"))
+        else:
+            src.load_from_file(os.path.join(self.base_url, domain, f"{domain}-{version}.json"))
         print ("finsihed loading in data")
         
         temp = []

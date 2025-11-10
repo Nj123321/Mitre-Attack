@@ -6,7 +6,7 @@ class MitreBase(StructuredNode):
     __abstract_node__ = True
     
     x_mitre_attack_spec_version = StringProperty(required = True)
-    attack_uuid = StringProperty(required=True, unique_index=True)
+    stix_uuid = StringProperty(required=True, unique_index=True)
     name = StringProperty(required=True)
     attack_id = StringProperty()
     # modified = DateTimeProperty(required=True)

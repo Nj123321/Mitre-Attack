@@ -7,7 +7,7 @@
         "description": "description",
         "external_references": "external_references",
         "first_seen": "first_seen",
-        "id": "id",
+        "stix_uuid": "id",
         "last_seen": "last_seen",
         "modified": "modified",
         "name": "name",

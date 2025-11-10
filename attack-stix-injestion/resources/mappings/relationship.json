@@ -5,7 +5,7 @@
         "created_by_ref": "created_by_ref",
         "description": "description",
         "external_references": "external_references",
-        "id": "id",
+        "stix_uuid": "id",
         "modified": "modified",
         "object_marking_refs": "object_marking_refs",
         "relationship_type": "relationship_type",

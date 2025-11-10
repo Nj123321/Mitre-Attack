@@ -6,7 +6,7 @@ from neomodel.exceptions import DoesNotExist
 import json
 
 class Repository:
-    SKIPPED = ["x-mitre-matrix", "marking-definition", "identity"]
+    SKIPPED = ["marking-definition", "identity"]
     
     def __init__(self):
         config.DATABASE_URL = 'bolt://:@localhost:7687'  # default
@@ -16,6 +16,8 @@ class Repository:
         # custom id defined by parser
         with db.transaction: 
             filtered_objects = self.filter_resources(id_resource_mapping)
+            
+            # user confirmation
             print(filtered_objects["updated"][:10])
             user_input = input("Updated: ")
             print(filtered_objects["added"][:10])

@@ -1,5 +1,8 @@
 {
-    "delete": [],
+    "derived_attributes": {
+        "attack_id": "external_references.[0].external_id"
+    },
+    "derived_labels": [],
     "attributes": {
         "created": "created",
         "created_by_ref": "created_by_ref",
@@ -17,8 +20,8 @@
         "x_mitre_attack_spec_version": "x_mitre_attack_spec_version",
         "x_mitre_deprecated": "x_mitre_deprecated",
         "x_mitre_modified_by_ref": "x_mitre_modified_by_ref",
-        "x_mitre_version": "x_mitre_version"
+        "x_mitre_version": "x_mitre_version",
+        "attack_id": "attack_id"
     },
-    "derived_relatinoships": {},
-    "derived_labels": []
+    "delete": []
 }

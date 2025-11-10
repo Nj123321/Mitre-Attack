@@ -1,5 +1,6 @@
 {
-    "delete": [],
+    "derived_attributes": {},
+    "derived_labels": [],
     "attributes": {
         "created": "created",
         "description": "description",
@@ -13,6 +14,5 @@
         "type": "type",
         "x_mitre_attack_spec_version": "x_mitre_attack_spec_version"
     },
-    "derived_relatinoships": {},
-    "derived_labels": []
+    "delete": []
 }

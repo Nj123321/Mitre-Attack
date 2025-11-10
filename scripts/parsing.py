@@ -22,7 +22,7 @@ project_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 print(project_base)
 fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/enterprise-attack/enterprise-attack.json"
 
-creating_new_mappings = False
+creating_new_mappings = True
 
 with open(fn, "r", encoding="utf-8") as f:
     bundle_dict = json.load(f)
@@ -35,6 +35,42 @@ stix2.Filter
 countz = {}
 
 
+def extract(json_obj, path, toDelete=False):
+        if path == "[*]":
+            raise Exception("Invalid Path")
+        filtered_path = path.split(".")
+        return recursive_json_dig(None, filtered_path, json_obj, 0, toDelete)
+def recursive_json_dig(parent, operations, jsonobj, iterator, toDelete):
+    op = operations[iterator]
+
+    if not (op[0] == "[" and op[-1] == "]"):
+        if iterator == len(operations) - 1:
+            return jsonobj[op] if not toDelete else jsonobj.pop(op)
+        return recursive_json_dig(jsonobj, operations, jsonobj[op], iterator + 1, toDelete)
+    index = op[1:len(op) - 1]
+    if index == "*":
+        if iterator == len(operations) - 1:
+            if toDelete:
+                op = operations[iterator - 1]
+                if not (op[0] == "[" and op[-1] == "]"):
+                    return parent.pop(op)
+                if not op == "*":
+                    return parent.pop(int(op))
+            
+            # so nice
+            return jsonobj
+            # very nice
+        combined = []
+        for elem in jsonobj:
+            dig_result = recursive_json_dig(jsonobj, operations, elem, iterator + 1, toDelete)
+            if not isinstance(dig_result, list):
+                dig_result = [dig_result]
+            combined = combined + dig_result
+        return combined
+    else:
+        if iterator == len(operations) - 1:
+            return jsonobj[int(index)] if not toDelete else jsonobj.pop(int(index))
+        return recursive_json_dig(jsonobj, operations, jsonobj[int(index)], iterator + 1, toDelete)
 
 # graph = Graph("bolt://localhost:7687")
 
@@ -72,7 +108,7 @@ bad_model = [
 ]
 
 # find attirbutes per model
-att_to_look = ["x_mitre_platforms"]
+att_to_look = ["kill_chain_phases"]
 
 # mappings
 bad_att = [
@@ -117,10 +153,10 @@ for name, obj_array in id_mapping.items():
     # mappings
     file_path = os.path.join(directory, name + ".json")
     mapping_creator = {}
-    mapping_creator["delete"] = []
-    mapping_creator["attributes"] = {}
-    mapping_creator["derived_relatinoships"] = {}
+    mapping_creator["derived_attributes"] = {}
     mapping_creator["derived_labels"] = []
+    mapping_creator["attributes"] = {}
+    mapping_creator["delete"] = []
     
     attribute_value_collector = {}
     for att in att_to_look:
@@ -130,6 +166,8 @@ for name, obj_array in id_mapping.items():
     common_attributes = set()
     first = True
     for elem in obj_array:
+        if elem["id"] == "malware--0a9c51e0-825d-4b9b-969d-ce86ed8ce3c3":
+            print(elem)
         for keys in elem:
             if keys in keys_to_look_for:
                 keys_to_look_for_hash[keys].add(name)
@@ -145,7 +183,7 @@ for name, obj_array in id_mapping.items():
                     except KeyError:
                         pass
             if keys in att_to_look:
-                found_values = elem[keys]
+                found_values = extract(elem, "kill_chain_phases.[*].phase_name")
                 if not isinstance(found_values, list):
                     found_values = [found_values]
                 for value in found_values:
@@ -163,8 +201,8 @@ for name, obj_array in id_mapping.items():
     
     
     
-    attributez = attributez.difference(intersection)
-    common_attributes = common_attributes.difference(intersection)
+    # attributez = attributez.difference(intersection)
+    # common_attributes = common_attributes.difference(intersection)
     print("TOTAL ATTRIBUTES: ")
     temp = list(attributez)
     temp.sort()
@@ -182,7 +220,20 @@ for name, obj_array in id_mapping.items():
         if att in bad_att:
             mapping_creator["delete"].append(att)
         else:
-            mapping_creator["attributes"][att] = att
+            if att == "id":
+                mapping_creator["attributes"]["stix_uuid"] = att
+            else:
+                mapping_creator["attributes"][att] = att
+        #labels
+        if att == "kill_chain_phases":
+            mapping_creator["derived_attributes"]["related_tactics"] = "kill_chain_phases.[*].phase_name"
+        if att == "x_mitre_platforms":
+            mapping_creator["derived_labels"].append("x_mitre_platforms")
+        if att == "external_references":
+            mapping_creator["derived_attributes"]["attack_id"] = "external_references.[0].external_id"
+    
+    for derived_att in mapping_creator["derived_attributes"]:
+        mapping_creator["attributes"][derived_att] = derived_att
     if creating_new_mappings:
         with open(file_path, "w") as f:
             json.dump(mapping_creator, f, indent=4)

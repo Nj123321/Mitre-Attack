@@ -1,5 +1,10 @@
 {
-    "delete": [],
+    "derived_attributes": {
+        "attack_id": "external_references.[0].external_id"
+    },
+    "derived_labels": [
+        "x_mitre_platforms"
+    ],
     "attributes": {
         "created": "created",
         "created_by_ref": "created_by_ref",
@@ -19,10 +24,8 @@
         "x_mitre_modified_by_ref": "x_mitre_modified_by_ref",
         "x_mitre_mutable_elements": "x_mitre_mutable_elements",
         "x_mitre_platforms": "x_mitre_platforms",
-        "x_mitre_version": "x_mitre_version"
+        "x_mitre_version": "x_mitre_version",
+        "attack_id": "attack_id"
     },
-    "derived_relatinoships": {},
-    "derived_labels": [
-        "x_mitre_platforms"
-    ]
+    "delete": []
 }

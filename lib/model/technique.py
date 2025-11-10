@@ -5,6 +5,7 @@ from ._mitre_base import MitreBase
 # kill_chain_phases.phase_name (tactical objectives)
 class Technique(VersionedObject, MitreBase):
     __optional_labels__ = [
+        # platforms: x_mitre_platforms
         "NetworkDevices",
         "SaaS",
         "OfficeSuite",

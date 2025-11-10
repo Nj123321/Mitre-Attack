@@ -83,8 +83,8 @@ def find_model_from_json(model_json, delete=False):
                 return DataSource
             case "x-mitre-detection-strategy":
                 return DetectionStrategy
-            # case "x-mitre-matrix":
-                # return Matrix()
+            case "x-mitre-matrix":
+                return Matrix
             case "x-mitre-tactic":
                 return Tactic
     except KeyError:

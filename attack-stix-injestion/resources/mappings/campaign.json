@@ -1,5 +1,8 @@
 {
-    "delete": [],
+    "derived_attributes": {
+        "attack_id": "external_references.[0].external_id"
+    },
+    "derived_labels": [],
     "attributes": {
         "aliases": "aliases",
         "created": "created",
@@ -22,8 +25,8 @@
         "x_mitre_first_seen_citation": "x_mitre_first_seen_citation",
         "x_mitre_last_seen_citation": "x_mitre_last_seen_citation",
         "x_mitre_modified_by_ref": "x_mitre_modified_by_ref",
-        "x_mitre_version": "x_mitre_version"
+        "x_mitre_version": "x_mitre_version",
+        "attack_id": "attack_id"
     },
-    "derived_relatinoships": {},
-    "derived_labels": []
+    "delete": []
 }

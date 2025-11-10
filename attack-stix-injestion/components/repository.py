@@ -11,12 +11,28 @@ class Repository:
     def __init__(self):
         config.DATABASE_URL = 'bolt://:@localhost:7687'  # default
         install_all_labels()
+        self.cached_instances = {}
+        
+    def _instantiate_json(self, operation, json_obj):
+        object_instance = None
+        object_class = find_model_from_json(json_obj)
+        if object_class is None:
+            raise Exception("cannot match model: " +  json_obj["type"])
+        if operation == "updated":
+            object_instance = object_class.nodes.get(stix_uuid=json_obj["stix_uuid"])
+        elif operation == "added":
+            object_instance =  object_class()
+        else:
+            raise Exception("invalid operation")
+        
+        return object_instance, object_class
+            
     
     def load_database(self, id_resource_mapping):
         # custom id defined by parser
         with db.transaction: 
             filtered_objects = self.filter_resources(id_resource_mapping)
-            
+
             # user confirmation
             print(filtered_objects["updated"][:10])
             user_input = input("Updated: ")
@@ -24,33 +40,73 @@ class Repository:
             user_input = input("added: ")
             print(list(filtered_objects["removed"])[:10])
             user_input = input("removed: ")
-            for obj in filtered_objects["updated"]:
-                if obj["type"] in self.SKIPPED:
-                    print("SKIPPED")
-                    continue
-                if obj["type"] == "attack-pattern":
-                    try:
-                        obj["x_mitre_is_subtechnique"]
-                    except KeyError:
-                        pass
-                object_class = find_model_from_json(obj)
-                print("found class: " + str(object_class))
-                user_input = input("Updated: ")
-                if object_class is None:
-                    print("none weird")
-                    continue
-                object_instance = object_class.nodes.get(stix_uuid=obj["stix_uuid"])
-                print("found uuid: " + obj["stix_uuid"])
-                print(object_instance.name)
-                user_input = input("Updated: ")
-                self._fill_model_with_dict(object_instance, obj)
-                user_input = input("After UPdate: " + object_instance.name)
-                object_instance.save()
-            self.add_objects(filtered_objects["added"])
             
-            for uuid in filtered_objects["removed"]:
-                model_type, _ = self._type_from_stix_uuid(uuid, True)
-                model_type.nodes.get(stix_uuid=uuid).delete()
+            # save relationships last, we have in-memory caches no need to load
+            # nodes if we've updated them before
+            relationship_queue = []
+            
+            for operation, object_arr in  filtered_objects.items():
+                if operation == "removed":
+                    for uuid in object_arr:
+                        model_type, _ = self._type_from_stix_uuid(uuid, True)
+                        model_type.nodes.get(stix_uuid=uuid).delete()
+                    continue
+                
+                # add or update
+                for obj in object_arr:
+                    # skip bad objects
+                    if obj["type"] in self.SKIPPED:
+                        print("SKIPPED")
+                        continue
+                    # skip relationships for later
+                    if operation == "added" and obj["type"] == "relationship":
+                        relationship_queue.append(obj)
+                        continue
+                    # decorate json obj
+                    if obj["type"] == "attack-pattern":
+                        try:
+                            obj["x_mitre_is_subtechnique"]
+                        except KeyError:
+                            obj["x_mitre_is_subtechnique"] = False
+                    
+                    obj_instance, obj_class = self._instantiate_json(operation, obj)
+                    self._fill_model_with_dict(obj_instance, obj)
+                    obj_instance.save()
+                    
+                    # add any (new) custom labels to object
+                    # TODO: Clear labels if operation is updated
+                    parsed_labels = obj.pop("mapipieline_added_labels")
+                    for label in parsed_labels:
+                        if label not in getattr(obj_instance, "__optional_labels__"):
+                            raise Exception("unexpected label: " + label + " for class: " + str(obj_class))
+                        db.cypher_query(f"MATCH (n:{obj_class.__name__}) WHERE id(n)={obj_instance.element_id.split(":")[-1]} SET n:{label}")
+
+                    self.cached_instances[obj_instance.stix_uuid] = obj_instance
+                
+                # process relationship queue
+                for relation in relationship_queue:
+                    source_ref = relation.pop("source_ref")
+                    target_ref = relation.pop("target_ref")
+                    
+                    source = self._load_model_from_stix_uuid(source_ref)
+                    target = self._load_model_from_stix_uuid(target_ref)
+                    print(relation)
+                    print("relatinoid: " + relation["stix_uuid"])
+                    match relation["relationship_type"]:
+                        case "uses":
+                            source.uses.connect(target, relation)
+                        case "mitigates":
+                            source.mitigates.connect(target, relation)
+                        case "subtechnique-of":
+                            source.subtechnique_of.connect(target, relation)
+                        case "detects":
+                            source.detects.connect(target, relation)
+                        case "attributed-to":
+                            source.attributed_to.connect(target, relation)
+                        case "targets":
+                            source.targets.connect(target, relation)
+                        case "revoked-by":
+                            source.revoked_by.connect(target, relation)
                 
         
     # returns bundles of objects that need change
@@ -107,61 +163,3 @@ class Repository:
             model, _ = self._type_from_stix_uuid(uuid, True)
             self.cached_instances[uuid] = model.nodes.get(stix_uuid=uuid)
             return self.cached_instances[uuid]
-    
-    def add_objects(self, json_objects):
-        werid_attack_pattern_count = 0
-        self.cached_instances = {}
-        queued_relationships = []
-        for json_model_rep in json_objects:
-            if json_model_rep["type"] in self.SKIPPED:
-                continue
-            if json_model_rep["type"] == "attack-pattern":
-                try:
-                    json_model_rep["x_mitre_is_subtechnique"]
-                except KeyError:
-                    werid_attack_pattern_count += 1
-                    json_model_rep["x_mitre_is_subtechnique"] = False
-            object_class = find_model_from_json(json_model_rep)
-            if object_class is None:
-                continue
-            if object_class is Relationship:
-                queued_relationships.append(json_model_rep)
-                continue
-            instantiatedModel = object_class()
-            self._fill_model_with_dict(instantiatedModel, json_model_rep)
-        
-            instantiatedModel.save()
-            
-            # add custom labels to object
-            for label in json_model_rep["mapipieline_added_labels"]:
-                if label not in getattr(instantiatedModel, "__optional_labels__"):
-                    raise Exception("unexpected label: " + label + " for class: " + str(object_class))
-                db.cypher_query(f"MATCH (n:{object_class.__name__}) WHERE id(n)={instantiatedModel.element_id.split(":")[-1]} SET n:{label}")
-            json_model_rep.pop("mapipieline_added_labels")
-            
-            self.cached_instances[instantiatedModel.stix_uuid] = instantiatedModel
-        for relation in queued_relationships:
-            source_ref = relation.pop("source_ref")
-            target_ref = relation.pop("target_ref")
-            
-            source = self._load_model_from_stix_uuid(source_ref)
-            target = self._load_model_from_stix_uuid(target_ref)
-            print(relation)
-            print("relatinoid: " + relation["stix_uuid"])
-            match relation["relationship_type"]:
-                case "uses":
-                    source.uses.connect(target, relation)
-                case "mitigates":
-                    source.mitigates.connect(target, relation)
-                case "subtechnique-of":
-                    source.subtechnique_of.connect(target, relation)
-                case "detects":
-                    source.detects.connect(target, relation)
-                case "attributed-to":
-                    source.attributed_to.connect(target, relation)
-                case "targets":
-                    source.targets.connect(target, relation)
-                case "revoked-by":
-                    source.revoked_by.connect(target, relation)
-        print("finsihed loading")
-        print("filled in missing attack patterns: " + str(werid_attack_pattern_count))

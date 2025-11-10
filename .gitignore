@@ -9,4 +9,5 @@ __pycache__/
 data
 logs
 
+# ignore pulled repository
 attack-stix-injestion/resources/mitre-attack-data

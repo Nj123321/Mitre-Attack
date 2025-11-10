@@ -1,0 +1,19 @@
+{
+    "delete": [],
+    "attributes": {
+        "created": "created",
+        "created_by_ref": "created_by_ref",
+        "description": "description",
+        "id": "id",
+        "modified": "modified",
+        "name": "name",
+        "object_marking_refs": "object_marking_refs",
+        "spec_version": "spec_version",
+        "type": "type",
+        "x_mitre_attack_spec_version": "x_mitre_attack_spec_version",
+        "x_mitre_contents": "x_mitre_contents",
+        "x_mitre_version": "x_mitre_version"
+    },
+    "derived_relatinoships": {},
+    "derived_labels": []
+}

@@ -1,10 +1,20 @@
 from .base_object import *
+from ._mitre_base import MitreBase
 
 # Labels: 
 # kill_chain_phases.phase_name (tactical objectives)
-class Technique(VersionedObject):
-    LABELS = []
-    name = StringProperty(required=True)
-    # id = StringProperty(unique_index=True, required=True)
-    # x_mitre_detection = StringProperty(required = True)
-    # x_mitre_platforms = ArrayProperty(StringProperty(), required = True)
+class Technique(VersionedObject, MitreBase):
+    __optional_labels__ = [
+        "NetworkDevices",
+        "SaaS",
+        "OfficeSuite",
+        "IdentityProvider",
+        "Windows",
+        "Containers",
+        "Office365",
+        "PRE",
+        "macOS",
+        "IaaS",
+        "Linux",
+        "ESXi",
+    ]

@@ -13,12 +13,19 @@ class Repository:
     
     def load_database(self, json_objects):
         print("started loading")
+        werid_attack_pattern_count = 0
         self.cached_instances = {}
         queued_relationships = []
         with db.transaction: 
             for json_model_rep in json_objects:
                 if json_model_rep["type"] in self.SKIPPED:
                     continue
+                if json_model_rep["type"] == "attack-pattern":
+                    try:
+                        json_model_rep["x_mitre_is_subtechnique"]
+                    except KeyError:
+                        werid_attack_pattern_count += 1
+                        json_model_rep["x_mitre_is_subtechnique"] = False
                 object_class = find_model_from_json(json_model_rep)
                 if object_class is None:
                     continue
@@ -38,9 +45,15 @@ class Repository:
                     setattr(instantiatedModel, att_name, json_model_rep[att_name])
             
                 instantiatedModel.save()
+                
+                # add custom labels to object
+                print("deriving labels for: " + str(json_model_rep["attack_uuid"]))
                 for label in json_model_rep["mapipieline_added_labels"]:
+                    if label not in getattr(instantiatedModel, "__optional_labels__"):
+                        raise Exception("unexpected label: " + label + " for class: " + str(object_class))
                     db.cypher_query(f"MATCH (n:{object_class.__name__}) WHERE id(n)={instantiatedModel.element_id.split(":")[-1]} SET n:{label}")
-                    # instantiatedModel.add_label(label)
+                json_model_rep.pop("mapipieline_added_labels")
+                    
                 if instantiatedModel.attack_uuid == "malware--6a21e3a4-5ffe-4581-af9a-6a54c7536f44":
                     print("type+ " + str(type(instantiatedModel.attack_uuid)))
                     print("chaching: " + instantiatedModel.attack_uuid)
@@ -69,3 +82,4 @@ class Repository:
                     case "revoked-by":
                         source.revoked_by.connect(target, relation)
         print("finsihed loading")
+        print("filled in missing attack patterns: " + str(werid_attack_pattern_count))

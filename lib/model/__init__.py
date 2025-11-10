@@ -41,7 +41,9 @@ MODEL_LIST = [
 ]
 
 def find_model_from_json(model_json):
+    print("matching model for: " + str(model_json))
     model_type = model_json["type"]
+    print()
     try:
         match model_type:
             # stix object data

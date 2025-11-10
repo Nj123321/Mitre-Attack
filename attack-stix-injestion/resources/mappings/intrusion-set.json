@@ -1,0 +1,25 @@
+{
+    "delete": [],
+    "attributes": {
+        "aliases": "aliases",
+        "created": "created",
+        "created_by_ref": "created_by_ref",
+        "description": "description",
+        "external_references": "external_references",
+        "id": "id",
+        "modified": "modified",
+        "name": "name",
+        "object_marking_refs": "object_marking_refs",
+        "revoked": "revoked",
+        "spec_version": "spec_version",
+        "type": "type",
+        "x_mitre_attack_spec_version": "x_mitre_attack_spec_version",
+        "x_mitre_contributors": "x_mitre_contributors",
+        "x_mitre_deprecated": "x_mitre_deprecated",
+        "x_mitre_domains": "x_mitre_domains",
+        "x_mitre_modified_by_ref": "x_mitre_modified_by_ref",
+        "x_mitre_version": "x_mitre_version"
+    },
+    "derived_relatinoships": {},
+    "derived_labels": []
+}

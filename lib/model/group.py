@@ -1,7 +1,6 @@
-from .base_object import *
-from ._mitre_base import MitreBase
+from ._mitre_base import *
 
-class Group(VersionedObject, MitreBase):
+class Group(MitreBase):
     __optional_labels__ = [
         "enterpriseattack",
         "mobileattack",

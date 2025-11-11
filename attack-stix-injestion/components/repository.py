@@ -103,8 +103,7 @@ class Repository:
                     # TODO: Clear labels if operation is updated
                     parsed_labels = obj_dict.pop("mapipieline_added_labels")
                     for label in parsed_labels:
-                        if label not in getattr(obj_instance, "__optional_labels__"):
-                            print(getattr(obj_instance, "__optional_labels__"))
+                        if label not in obj_class.__optional_labels__:
                             raise Exception("unexpected label: " + label + " for class: " + str(obj_class))
                         db.cypher_query(f"MATCH (n:{obj_class.__name__}) WHERE id(n)={obj_instance.element_id.split(":")[-1]} SET n:{label}")
 
@@ -176,8 +175,6 @@ class Repository:
             pass
         
         for id, object in resource_mapping.items():
-            # print("adding id: " + id)
-            # user_input = input("added: ")
             filtered_resources["added"].append(object)
         return filtered_resources
     

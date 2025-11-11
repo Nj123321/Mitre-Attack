@@ -1,11 +1,9 @@
-from .base_object import *
-from ._mitre_base import MitreBase
+from ._mitre_base import *
 
-class Matrix(VersionedObject, MitreBase):
+class Matrix(MitreBase):
     __optional_labels__ = [
         "enterpriseattack",
         "mobileattack",
         "icsattack",
     ]
-    
     contains = RelationshipTo('.tactic.Tactic', 'CONTAINS')

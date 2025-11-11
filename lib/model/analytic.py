@@ -1,19 +1,7 @@
-from .base_object import *
-from ._mitre_base import MitreBase
+from ._mitre_base import *
 
-class Analytic(VersionedObject, MitreBase):
-   __optional_labels__ = [
-        "NetworkDevices",
-        "SaaS",
-        "OfficeSuite",
-        "IdentityProvider",
-        "Windows",
-        "Containers",
-        "PRE",
-        "macOS",
-        "IaaS",
-        "Linux",
-        "ESXi",
+class Analytic(MitreBase):
+    __optional_labels__ = [
         "enterpriseattack",
         "mobileattack",
         "icsattack",

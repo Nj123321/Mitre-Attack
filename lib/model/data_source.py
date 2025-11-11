@@ -1,22 +1,7 @@
-from .base_object import *
-from ._mitre_base import MitreBase
+from ._mitre_base import *
 
-class DataSource(VersionedObject, MitreBase):
+class DataSource(MitreBase):
     __optional_labels__ = [
-        "NetworkDevices",
-        "SaaS",
-        "OfficeSuite",
-        "IdentityProvider",
-        "Windows",
-        "Containers",
-        "iOS",
-        "PRE",
-        "Android",
-        "macOS",
-        "IaaS",
-        "Linux",
-        "ESXi",
-        
         "enterpriseattack",
         "mobileattack",
         "icsattack",

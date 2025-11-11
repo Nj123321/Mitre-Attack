@@ -20,7 +20,7 @@ import lib.constants
 
 project_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 print(project_base)
-fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/" + ics
+fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/" + ent
 
 creating_new_mappings = True
 
@@ -236,8 +236,8 @@ for name, obj_array in id_mapping.items():
         #labels
         if att == "kill_chain_phases":
             mapping_creator["derived_attributes"]["related_tactics"] = "kill_chain_phases.[*].phase_name"
-        if att == "x_mitre_platforms":
-            mapping_creator["derived_labels"].append("x_mitre_platforms")
+        # if att == "x_mitre_platforms":
+            # mapping_creator["derived_labels"].append("x_mitre_platforms")
         if att == "external_references":
             mapping_creator["derived_attributes"]["attack_id"] = "external_references.[0].external_id"
     

@@ -7,4 +7,4 @@ class Tactic(MitreBase):
         "icsattack",
     ]
     
-    name = StringProperty(required=True, unique_index=True)
+    name = StringProperty(required=True)

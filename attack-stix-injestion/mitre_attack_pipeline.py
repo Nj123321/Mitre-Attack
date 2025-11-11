@@ -10,5 +10,5 @@ class MitreAttackPipeline:
     def run(self, domain):
         data = self.loader.load_data(domain)
         parsed_data = self.parser.parse_data(data, domain)
-        self.repository.load_database(parsed_data)
+        self.repository.load_database(parsed_data, domain)
         

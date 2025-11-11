@@ -40,19 +40,14 @@ MODEL_LIST = [
     Tool,
 ]
 
-def find_model_from_json(model_json, delete=False):
-    print("matching model for: " + str(model_json))
-    model_type = model_json["type"]
-    print()
+def find_model_from_type(model_type):
     try:
         match model_type:
             # stix object data
             case "attack-pattern":
-                if delete:
-                    return Technique
-                if model_json["x_mitre_is_subtechnique"] == True:
-                    return SubTechnique
                 return Technique
+            case "sub-attack-pattern":
+                return SubTechnique
             case "campaign":
                 return Campaign
             case "course-of-action":
@@ -88,4 +83,5 @@ def find_model_from_json(model_json, delete=False):
             case "x-mitre-tactic":
                 return Tactic
     except KeyError:
-        raise Exception("Could match model with: \"" + model_type + "\"")
+        pass
+    raise Exception("Could match model with: \"" + model_type + "\"")

@@ -8,56 +8,78 @@ import os
 import lib.constants
 from datetime import datetime, timezone
 
+from .repository import Repository
+
 # creates id -> object mapping, for faster lookup in repository layer
 # also handles trasnfomations / labels / validation
 class Parser:
     REMOVED_VALUES = ["object_marking_refs"]
     MAPPING_BASE = "resources/mappings/"
+    IGNORED_VALUES = [
+            "marking-definition", 
+            "x-mitre-collection", 
+            "identity",
+            "x-mitre-asset"
+        ]
     
     def __init__(self):
         self.mapping_cache = {}
         print("initilaizing parser")
     
-    # domain = mitre attack domain for loading in mapping files
+    """
+    Given list of json objects, transform each so that:
+    {
+        obj_type: {
+            obj_id : obj_json
+            ....
+        }
+        ....
+    }
+    """
     def parse_data(self, json_objects, domain):
         self.domain = domain
-        mapped_by_id = {}
+        formatted_resources = {}
         for obj in json_objects:
-            if obj["type"] == "x-mitre-collection":
-                obj["mapipieline_added_labels"] = set()
-                mapped_by_id["current-collection_being_loaded"] = self._transform_collection_mappings(obj)
+            extracted_type = obj["type"]
+            if extracted_type in Parser.IGNORED_VALUES:
                 continue
-            try:
-                mapped_by_id[obj["id"]]
-                raise Exception("dupicliate ids not alllowed: " + mapped_by_id["id"])
-            except KeyError:
-                pass
-            mapped_by_id[obj["id"]] = obj
             self._derive_attributes(obj)
             self._add_labels(obj)
             self._transform_fields(obj)
             self._remove_common_fields(obj)
-        return mapped_by_id
+            
+            formatted_resources.setdefault(obj["type"], {})
+            # TODO: move to validation function
+            # re-extract type, type changed for subtechnique - fix
+            if obj["stix_uuid"] in formatted_resources[obj["type"]]:
+                raise Exception("dupicliate ids not alllowed: " + formatted_resources["id"])
+            print(obj["stix_uuid"])
+            obj["int_modified"] = self.extract_modified(obj["modified"])
+            formatted_resources[obj["type"]][obj["stix_uuid"]] = obj
+        return formatted_resources
     
-    def _transform_collection_mappings(self, mitre_collection):
-        id_to_updated_mappings = {}
-        for obj in mitre_collection.pop("x_mitre_contents"):
-            time_stamp = obj["object_modified"]
+    def extract_modified(self, time_stamp):
+        if isinstance(time_stamp, str):
             time_stamp = datetime.strptime(time_stamp, "%Y-%m-%dT%H:%M:%S.%fZ")
-            time_stamp = time_stamp.replace(tzinfo=timezone.utc).timestamp()
-            id_to_updated_mappings[obj["object_ref"]] = time_stamp
-        mitre_collection["x_mitre_contents_dictionized"] = id_to_updated_mappings
-        mitre_collection["stix_uuid"] = mitre_collection["id"]
-        return mitre_collection
+        else:
+            return time_stamp.timestamp()
+        return time_stamp.replace(tzinfo=timezone.utc).timestamp()
     
     def _derive_attributes(self, json_obj):
         mapping = self.load_mapping_cache(json_obj["type"])
         for att_name, att_path in mapping["derived_attributes"].items():
-            try:
-                extracted = self._extract(json_obj, att_path)
-            except KeyError:
-                continue
+            extracted = self._extract(json_obj, att_path)
             json_obj[att_name] = extracted
+        
+        # custom for our case, keeping technique and subtechnique seperate
+        # to divide ResourceManager
+        # decoreate sub-technique
+        try:
+            if json_obj["type"] == "attack-pattern" and json_obj["x_mitre_is_subtechnique"] == True:
+                json_obj["type"] = "sub-attack-pattern"
+                # json_obj["id"] = "sub-" + json_obj["id"]
+        except KeyError:
+            pass
             
     # extract out keys, etc, transfomration, not changing keys just restructuring
     def _transform_fields(self, json_obj):
@@ -66,11 +88,12 @@ class Parser:
         new_json = {}
         for key in mapping["attributes"]:
             # greedily match mappings
-            try:
-                extracted = self._extract(json_obj, mapping["attributes"][key], True)
-                new_json[key] = extracted
-            except KeyError:
-                pass
+            path = mapping["attributes"][key]
+            split_path = path.split("@", 1)
+            search_path = split_path[0]
+            required = split_path[1] if len(split_path) > 1 else False
+            extracted = self._extract(json_obj, search_path, required, True)
+            new_json[key] = extracted
         new_json["mapipieline_added_labels"] = json_obj.pop("mapipieline_added_labels")
         if json_obj:
             pass
@@ -95,12 +118,8 @@ class Parser:
             split_path = label_path.split("@", 1)
             search_path = split_path[0]
             required = split_path[1] if len(split_path) > 1 else False
-            try:
-                extracted_labels = self._extract(obj, search_path)
-            except KeyError:
-                if required:
-                    # TODO: extract out exceptions into a seperate file
-                    raise Exception("Required label \"" + search_path + "\"" + " not found in stix_uuid: " + obj["id"])
+            extracted_labels = self._extract(obj, search_path, required)
+            if not extracted_labels:
                 continue
             
             # either a list of labels or a singular value
@@ -114,6 +133,10 @@ class Parser:
 
     # lazily loads in mappings
     def load_mapping_cache(self, resource_type):
+        # TODO: Tempororay substitute
+        if resource_type == "sub-attack-pattern":
+            resource_type = "attack-pattern"
+            
         if resource_type in self.mapping_cache:
             return self.mapping_cache[resource_type]
         
@@ -125,11 +148,18 @@ class Parser:
         return self.mapping_cache[resource_type]
     
     # dig in json object using path
-    def _extract(self, json_obj, path, toDelete=False):
+    def _extract(self, json_obj, path, required=False, toDelete=False):
         if path == "[*]":
             raise Exception("Invalid Path")
         filtered_path = path.split(".")
-        return self._recursive_json_dig(None, filtered_path, json_obj, 0, toDelete)
+        try:
+            return self._recursive_json_dig(None, filtered_path, json_obj, 0, toDelete)
+        except KeyError:
+            print("what the fuck: " + str(required))
+            print(json_obj)
+            print(path)
+            if required:
+                raise Exception("unable to find key: " + path)
     def _recursive_json_dig(self, parent, operations, jsonobj, iterator, toDelete):
         op = operations[iterator]
 

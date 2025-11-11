@@ -9,4 +9,5 @@ if PROJECT_ROOT not in sys.path:
 from mitre_attack_pipeline import MitreAttackPipeline
 
 attack = MitreAttackPipeline("https://github.com/mitre-attack/attack-stix-data.git")
-attack.run("enterprise-attack")
+for domain in ["ics-attack", "enterprise-attack", "mobile-attack"]:
+    attack.run(domain)

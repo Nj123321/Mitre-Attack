@@ -5,6 +5,7 @@ from lib.model.collection import Collection
 from neomodel import db, install_all_labels, config
 from neomodel.exceptions import DoesNotExist
 import json
+from lib.commons import CustomPipelineKeys
 
 class Repository:
     _resource_manager_cache = {}
@@ -48,13 +49,11 @@ class Repository:
             
             # add or update
             for obj_dict in object_arr:
-                modified_int = obj_dict.pop("int_modified")
+                modified_int = obj_dict.pop(CustomPipelineKeys.INT_MODIFIED)
                 mappin_for_batch[obj_dict["stix_uuid"]] = {
                     "modified": modified_int,
                     "domains": obj_dict["x_mitre_domains"]
                 }
-                if obj_dict["stix_uuid"] == "attack-pattern--65f2d882-3f41-4d48-8a06-29af77ec9f90":
-                    input("weirrrddd found da model")
                 obj_instance, obj_class = self._instantiate_json(operation, model_type, obj_dict["stix_uuid"])
                 self._fill_model_with_dict(obj_instance, obj_dict)
                 obj_instance.save()
@@ -68,15 +67,18 @@ class Repository:
                             "relationship_type": "contains"
                         })
                 if obj_class is Technique:
+                    if "related_tactics" not in obj_dict:
+                        continue
                     tactics = obj_dict["related_tactics"]
-                    if tactics:
-                        for tactic in tactics:
-                            tactic = tactic.lower().replace("-", " ")
-                            technique_tactic_relationships.append({
-                                "source_ref": obj_instance.stix_uuid,
-                                "target_tactic_name": tactic,
-                                "relationship_type": "technique_of"
-                            })
+                    if len(tactics) == 0:
+                        raise Exception("fuckingweird")
+                    for tactic in tactics:
+                        tactic = tactic.lower().replace("-", " ")
+                        technique_tactic_relationships.append({
+                            "source_ref": obj_instance.stix_uuid,
+                            "target_tactic_name": tactic,
+                            "relationship_type": "technique_of"
+                        })
                     
                 # add any (new) custom labels to object
                 # TODO: Clear labels if operation is updated
@@ -91,6 +93,11 @@ class Repository:
         rm_for_batch.save()
     
     def load_database(self, type_id_resource_mapping, domain):
+        nodes_count, _ = db.cypher_query("MATCH (n) RETURN count(n)")
+        rels_count, _ = db.cypher_query("MATCH ()-[r]->() RETURN count(r)")
+
+        print(f"Nodes: {nodes_count[0][0]}, Relationships: {rels_count[0][0]}")
+        input("loading domain: " + domain)
         filtered_objects = self.filter_resources(type_id_resource_mapping, domain)
         # custom id defined by parser
         with db.transaction: 
@@ -140,9 +147,13 @@ class Repository:
                 
                 # if there is remaining metadata or a custom relationship
                 if relation:
+                    print("===================================")
+                    print(relation)
                     getattr(source, relatinoship_type).connect(target, relation)
                 else:
                     getattr(source, relatinoship_type).connect(target)
+        print(f"Nodes: {nodes_count[0][0]}, Relationships: {rels_count[0][0]}")
+        input("results: ")
                 
     def get_resource_manager(self, resource_type):
         print(resource_type)
@@ -167,10 +178,15 @@ class Repository:
             }
             existing_resource_uuids = set(resource_manager_map)
             for uuid, obj_json in mappings.items():
+                # patch-fix
+                int_modified = obj_json[CustomPipelineKeys.INT_MODIFIED]
+                if type == "relationship":
+                    obj_json.pop(CustomPipelineKeys.INT_MODIFIED)
+                
                 if uuid not in resource_manager_map:
                     filtered_resources["added"].append(obj_json)
                     continue
-                elif resource_manager_map[uuid]["modified"] < obj_json["int_modified"]:
+                elif resource_manager_map[uuid]["modified"] < int_modified:
                     filtered_resources["updated"].append(obj_json)
                 existing_resource_uuids.remove(uuid)
             filtered_resources["removed"] = existing_resource_uuids

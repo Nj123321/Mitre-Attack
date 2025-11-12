@@ -4,8 +4,8 @@ class CustomPipelineKeys(Enum):
     EXTRACTED_TYPE = "extracted_type"
     INT_MODIFIED = "int_modified"
 
-def clean_label_str(label):
-    label = label.replace(" ", "").replace("/", "").replace("-","")
+def clean_str(label):
+    label = label.lower().replace(" ", "").replace("/", "").replace("-","")
     return label
 
 def extract_from_json(json_obj, path, required=False, toDelete=False):

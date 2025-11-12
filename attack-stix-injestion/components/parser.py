@@ -5,7 +5,7 @@
 # dyanmcailly creates filters based on class name -> file mapping
 import json
 import os
-from lib.commons import clean_label_str, extract_from_json, CustomPipelineKeys
+from lib.commons import clean_str, extract_from_json, CustomPipelineKeys
 from datetime import datetime, timezone
 
 from .repository import Repository
@@ -117,7 +117,7 @@ class Parser:
                 if not isinstance(extracted_labels, list):
                     extracted_labels = [extracted_labels]
                 for label in extracted_labels:
-                    label = clean_label_str(label)
+                    label = clean_str(label)
                     labels.add(label)
         obj["mapipieline_added_labels"] = labels
         

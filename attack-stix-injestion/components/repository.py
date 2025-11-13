@@ -58,7 +58,7 @@ class Repository:
             
             # connect nodes at the end
             self.add_tactic_technique_relationships(filtered_objects, relationship_queue)
-            self.process_relationship_queue(relationship_queue)
+            self.process_relationship_queue(relationship_queue, domain)
         nodes_count, _ = db.cypher_query("MATCH (n) RETURN count(n)")
         rels_count, _ = db.cypher_query("MATCH ()-[r]->() RETURN count(r)")
         print(f"Nodes: {nodes_count[0][0]}, Relationships: {rels_count[0][0]}")
@@ -94,11 +94,14 @@ class Repository:
                         "relationship_type": "technique_of"
                     })
     
-    def process_relationship_queue(self, relationship_queue):
+    def process_relationship_queue(self, relationship_queue, domain):
+        rm = self._get_resource_manager("relationship")
+        updated_mappin_for_batch = rm.x_mitre_contents_serialized
         # process relationship queue
         for relation in relationship_queue:
             source_ref = relation.pop("source_ref")
             target_ref = relation.pop("target_ref")
+            int_modified = relation.pop(CustomPipelineKeys.INT_MODIFIED)
             
             #temprory ics checks
             try:
@@ -119,6 +122,16 @@ class Repository:
                 getattr(source, relatinoship_type).connect(target, relation)
             else:
                 getattr(source, relatinoship_type).connect(target)
+            # if relation["stix_uuid"] in updated_mappin_for_batch:
+            #     updated_mappin_for_batch[relation["stix_uuid"]]["modified"] = int_modified
+            #     updated_mappin_for_batch[relation["stix_uuid"]]["domains"].append(domain) if domain not in updated_mappin_for_batch[relation["stix_uuid"]]["domains"] else None
+            # else:
+            #     updated_mappin_for_batch[relation["stix_uuid"]] = {
+            #         "modified": int_modified,
+            #         "domains": [domain]
+            #     }
+        rm.x_mitre_contents_serialized = updated_mappin_for_batch
+        rm.save()
                 
     def _instantiate_json(self, operation, object_class, stix_uuid):
         object_instance = None
@@ -185,10 +198,7 @@ class Repository:
             }
             existing_resource_uuids = set(resource_manager_map)
             for uuid, obj_json in mappings.items():
-                # patch-fix
                 int_modified = obj_json[CustomPipelineKeys.INT_MODIFIED]
-                if type == "relationship":
-                    obj_json.pop(CustomPipelineKeys.INT_MODIFIED)
                 
                 if uuid not in resource_manager_map:
                     filtered_resources["added"].append(obj_json)
@@ -202,8 +212,6 @@ class Repository:
             formatted_resources[type] = filtered_resources
             #debugging
             outputdict[type] = filtered_resources["removed"]
-        print(outputdict)
-        # input("removal for " + domain + ": ")
         return formatted_resources
     
     def _fill_model_with_dict(self, instantiatedModel, attribute_dict):

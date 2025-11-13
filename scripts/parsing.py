@@ -16,7 +16,7 @@ ics = "ics-attack/ics-attack.json"
 
 import os
 
-import lib.constants
+from lib.commons import clean_str
 
 project_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 print(project_base)
@@ -95,7 +95,7 @@ for obj in bundle.objects:
     id_mapping[name].append(obj)
 
 print("found domain: " + domain)
-input("Enter something: ")
+# input("Enter something: ")
     
 for k, v in id_mapping.items():
     print("k: " + str(k) + "   |  length: " + str(len(v)))
@@ -196,7 +196,7 @@ for name, obj_array in id_mapping.items():
                 if not isinstance(found_values, list):
                     found_values = [found_values]
                 for value in found_values:
-                    value = lib.constants.clean_label_str(value)
+                    value = clean_str(value)
                     attribute_value_collector[keys].add(value)
             # global aggregator / intersector
         elem
@@ -238,8 +238,8 @@ for name, obj_array in id_mapping.items():
             mapping_creator["derived_attributes"]["related_tactics"] = "kill_chain_phases.[*].phase_name"
         # if att == "x_mitre_platforms":
             # mapping_creator["derived_labels"].append("x_mitre_platforms")
-        if att == "external_references":
-            mapping_creator["derived_attributes"]["attack_id"] = "external_references.[0].external_id"
+        if att == "external_references" and name != "relationship":
+            mapping_creator["derived_attributes"]["attack_id"] = "external_references.[0].external_id!"
     
     for derived_att in mapping_creator["derived_attributes"]:
         mapping_creator["attributes"][derived_att] = derived_att

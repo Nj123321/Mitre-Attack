@@ -16,7 +16,7 @@ def extract_from_json(json_obj, path, required=False, toDelete=False):
         return _recursive_json_dig(None, filtered_path, json_obj, 0, toDelete)
     except KeyError:
         if required:
-            raise Exception("unable to find key: " + path)
+            raise Exception("unable to find key: " + path + "\n for: \n" + str(json_obj))
 def _recursive_json_dig(parent, operations, jsonobj, iterator, toDelete):
     op = operations[iterator]
 

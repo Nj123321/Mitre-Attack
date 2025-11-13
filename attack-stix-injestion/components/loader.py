@@ -18,7 +18,7 @@ class Loader:
             print(f"Cloning new repo from {repo_url} into {dest_dir}")
             Repo.clone_from(repo_url, dest_dir)
         print("finsihed cloning")
-    def load_data(self, domain, version="latest"):
+    def load_data(self, domain, version):
         """get ATT&CK STIX data for a given domain and version. Domain should be 'enterprise-attack', 'mobile-attack' or 'ics-attack'. Branch should typically be master."""
         src = MemoryStore()
         if version == "latest":

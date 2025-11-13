@@ -9,4 +9,4 @@ class Technique(MitreBase):
         "icsattack",
     ]
     
-    technique_of = Relationship('MitreBase', 'TECHNIQUE-OF')
+    technique_of = Relationship('MitreBase', 'TECHNIQUEOF')

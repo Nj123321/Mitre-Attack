@@ -62,7 +62,8 @@ class Parser:
     def _derive_attributes(self, json_obj):
         mapping = self.load_mapping_cache(json_obj["type"])
         for att_name, att_path in mapping["derived_attributes"].items():
-            extracted = extract_from_json(json_obj, att_path)
+            search_path, required = self._filter_query_path(att_path)
+            extracted = extract_from_json(json_obj, search_path, required)
             json_obj[att_name] = extracted
         
     # specific mitre / pipeline things

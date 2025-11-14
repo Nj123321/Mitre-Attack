@@ -1,6 +1,6 @@
 from neomodel import (db, DoesNotExist, StructuredNode, StringProperty, IntegerProperty,
     RelationshipTo, DateTimeProperty, BooleanProperty, ArrayProperty, Relationship)
-from .relationship import Relationship as RelationshipModel
+from .relationship import RelationshipModel
 
 class MitreBase(StructuredNode):
     __abstract_node__ = True
@@ -15,8 +15,8 @@ class MitreBase(StructuredNode):
     
     uses = RelationshipTo('MitreBase', 'USES', model=RelationshipModel)
     mitigates = RelationshipTo('MitreBase', 'MITIGATES', model=RelationshipModel)
-    subtechnique_of = Relationship('MitreBase', 'SUBTECHNIQUE-OF', model=RelationshipModel)
+    subtechnique_of = Relationship('MitreBase', 'SUBTECHNIQUEOF', model=RelationshipModel)
     detects = RelationshipTo('MitreBase', 'DETECTS', model=RelationshipModel)
-    attributed_to = RelationshipTo('MitreBase', 'ATTRIBUTED-TO', model=RelationshipModel)
+    attributed_to = RelationshipTo('MitreBase', 'ATTRIBUTEDTO', model=RelationshipModel)
     targets = RelationshipTo('MitreBase', 'TARGETS', model=RelationshipModel)
-    revoked_by = RelationshipTo('MitreBase', 'REVOKED-BY', model=RelationshipModel)
+    revoked_by = RelationshipTo('MitreBase', 'REVOKEDBY', model=RelationshipModel)

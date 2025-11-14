@@ -1,4 +1,5 @@
 from ._mitre_base import *
+from .relationship import RelationshipModel
 
 # Labels: 
 # kill_chain_phases.phase_name (tactical objectives)
@@ -9,4 +10,4 @@ class Technique(MitreBase):
         "icsattack",
     ]
     
-    technique_of = Relationship('MitreBase', 'TECHNIQUEOF')
+    technique_of = Relationship('MitreBase', 'TECHNIQUEOF', model=RelationshipModel)

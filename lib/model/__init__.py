@@ -3,7 +3,7 @@ from .technique import Technique
 from .campaign import Campaign
 from .mitigation import Mitigation
 from .group import Group
-from .relationship import Relationship
+from .relationship import RelationshipModel
 from .analytic import Analytic
 from .collection import Collection
 from .data_component import DataComponent
@@ -28,7 +28,7 @@ MODEL_LIST = [
     Campaign,
     Mitigation,
     Group,
-    Relationship,
+    RelationshipModel,
     Analytic,
     Collection,
     DataComponent,
@@ -65,7 +65,7 @@ def find_model_from_type(model_type):
             # case "MarkingDefinition":
                 # pass
             case "relationship":
-                return Relationship
+                return RelationshipModel
             
             # custom stix types
             case "x-mitre-analytic":

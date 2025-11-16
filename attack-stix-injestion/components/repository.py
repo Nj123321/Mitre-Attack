@@ -10,6 +10,7 @@ import time
 import uuid as uuidLibrary
 from datetime import datetime
 from neomodel.properties import Property
+import os
 
 class Repository:
     _resource_manager_cache = {}
@@ -21,7 +22,10 @@ class Repository:
     """
     
     def __init__(self):
-        config.DATABASE_URL = 'bolt://:@localhost:7687'  # default
+        config.DATABASE_URL = os.getenv(
+            "DATABASE_URL",
+            "bolt://:@localhost:7687"   # fallback default for local dev
+        )
         install_all_labels()
         self.cached_instances = {}
         self._instantiate_missing_resource_managers()
@@ -232,6 +236,7 @@ class Repository:
                 }
                 obj_instance, obj_class = self._instantiate_json(operation, model_type, obj_dict["stix_uuid"])
                 self._fill_model_with_dict(obj_instance, obj_dict)
+                print(obj_dict)
                 obj_instance.save()
                     
                 # add any (new) custom labels to object

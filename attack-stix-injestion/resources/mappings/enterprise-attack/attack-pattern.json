@@ -1,6 +1,6 @@
 {
     "derived_attributes": {
-        "attack_id": "external_references.[0].external_id!",
+        "attack_id": "external_references.[0].external_id",
         "related_tactics": "kill_chain_phases.[*].phase_name"
     },
     "derived_labels": [

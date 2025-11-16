@@ -14,10 +14,12 @@ services:
       - ./logs:/logs
       - ./import:/import
       - ./plugins:/plugins
+    networks:
+      - mitreattack
 
 # volumes:
 #   redisinsight-data:
 
 networks:
-  app-network:
+  mitreattack:
     driver: bridge

@@ -20,7 +20,7 @@ from lib.commons import clean_str
 
 project_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 print(project_base)
-fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/" + ent
+fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/" + ics
 
 creating_new_mappings = True
 
@@ -239,7 +239,7 @@ for name, obj_array in id_mapping.items():
         # if att == "x_mitre_platforms":
             # mapping_creator["derived_labels"].append("x_mitre_platforms")
         if att == "external_references" and name != "relationship":
-            mapping_creator["derived_attributes"]["attack_id"] = "external_references.[0].external_id!"
+            mapping_creator["derived_attributes"]["attack_id"] = "external_references.[0].external_id"
     
     for derived_att in mapping_creator["derived_attributes"]:
         mapping_creator["attributes"][derived_att] = derived_att

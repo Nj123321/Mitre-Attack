@@ -1,5 +1,5 @@
 from neomodel import (db, DoesNotExist, StructuredNode, StringProperty, IntegerProperty,
-    RelationshipTo, DateTimeProperty, BooleanProperty, ArrayProperty, Relationship)
+    RelationshipTo, DateTimeProperty, BooleanProperty, ArrayProperty, Relationship, JSONProperty)
 from .relationship import RelationshipModel
 
 class MitreBase(StructuredNode):
@@ -9,8 +9,8 @@ class MitreBase(StructuredNode):
     stix_uuid = StringProperty(required=True, unique_index=True)
     name = StringProperty(required=True)
     attack_id = StringProperty()
-    # modified = DateTimeProperty(required=True)
-    # created = DateTimeProperty(required=True)
+    modified = StringProperty(required=True)
+    created = StringProperty(required=True)
     # skipping object_marking_refs? - marking-definintoin model
     
     uses = RelationshipTo('MitreBase', 'USES', model=RelationshipModel)

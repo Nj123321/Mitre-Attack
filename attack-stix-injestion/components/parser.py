@@ -13,7 +13,7 @@ from .repository import Repository
 # creates id -> object mapping, for faster lookup in repository layer
 # also handles trasnfomations / labels / validation
 class Parser:
-    MAPPING_BASE = "resources/mappings/"
+    MAPPING_BASE = "attack-stix-injestion/resources/mappings/"
     IGNORED_VALUES = [
             "marking-definition", 
             "x-mitre-collection", 

@@ -1,6 +1,7 @@
 from git import Repo
 import os
 from stix2 import MemoryStore
+import json
 
 # loader handles validatoins
 class Loader:
@@ -21,10 +22,12 @@ class Loader:
     def load_data(self, domain, version):
         """get ATT&CK STIX data for a given domain and version. Domain should be 'enterprise-attack', 'mobile-attack' or 'ics-attack'. Branch should typically be master."""
         src = MemoryStore()
+        fpath = ""
         if version == "latest":
-            src.load_from_file(os.path.join(self.base_url, domain, f"{domain}.json"))
+            fpath = os.path.join(self.base_url, domain, f"{domain}.json")
         else:
-            src.load_from_file(os.path.join(self.base_url, domain, f"{domain}-{version}.json"))
+            fpath = os.path.join(self.base_url, domain, f"{domain}-{version}.json")
+        src.load_from_file(fpath)
         print ("finsihed loading in data")
         
         temp = []
@@ -35,6 +38,8 @@ class Loader:
                 temp.append(x.__dict__['_inner'])
         # verify valid x-mitre data?
         print("finished dictionizing in data")
+        with open(fpath, "r") as f:
+            temp = json.load(f)["objects"]
         return temp
     def taxii_server(self):
         print("taxiserver")

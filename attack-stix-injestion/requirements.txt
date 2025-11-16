@@ -1,0 +1,16 @@
+antlr4-python3-runtime==4.9.3
+certifi==2025.10.5
+charset-normalizer==3.4.4
+gitdb==4.0.12
+GitPython==3.1.45
+idna==3.11
+neo4j==5.28.2
+neomodel==5.5.3
+pytz==2025.2
+requests==2.32.5
+simplejson==3.20.2
+six==1.17.0
+smmap==5.0.2
+stix2==3.0.1
+stix2-patterns==2.0.0
+urllib3==2.5.0

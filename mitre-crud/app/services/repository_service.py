@@ -28,6 +28,7 @@ RETURN m
     @classmethod
     def get_model_uuid(clz, resource, uuid):
         found_object = ALLOWED_RESOURCES[resource].nodes.get(stix_uuid=uuid)
+        print(found_object.labels)
         return found_object.__properties__
     
     @classmethod
@@ -39,6 +40,8 @@ RETURN m
     @classmethod
     def get_matrix(clz, domain):
         matrix, _ = db.cypher_query(clz.get_matrices_query, {"dynamic_label": domain})
+        if len(matrix) == 0:
+            return None
         matrix[0]
         return matrix
     

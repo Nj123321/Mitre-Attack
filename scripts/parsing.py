@@ -16,11 +16,11 @@ ics = "ics-attack/ics-attack.json"
 
 import os
 
-from lib.commons import clean_str
+from mitre_common.commons import clean_str
 
 project_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 print(project_base)
-fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/" + ics
+fn = project_base + "/attack-stix-injestion/resources/mitre-attack-data/" + mobile
 
 creating_new_mappings = True
 

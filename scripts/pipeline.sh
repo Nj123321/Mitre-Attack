@@ -17,13 +17,17 @@ elif [[ "$1" == "stop" ]]; then
 elif [[ "$1" == "restart" ]]; then
 	echo "composing donw"
 	docker compose -f "$PROJECT_ROOT/docker-compose.yml" down -v
-	# or
-	# docker stop neo4j
-	# docker rm neo4j
 	echo "removing files"
-	rm -r "$PROJECT_ROOT/data" "$PROJECT_ROOT/logs" "$PROJECT_ROOT/import" "$PROJECT_ROOT/plugins"
+	rm -r "$PROJECT_ROOT/neo4j"
 	echo "done"
 	docker compose -f "$PROJECT_ROOT/docker-compose.yml" up -d
+elif [[ "$1" == "build" ]]; then
+	echo "building images"
+	docker build \
+        -f "$PROJECT_ROOT/attack-stix-injestion/Dockerfile" \
+        -t pipeline \
+        "$PROJECT_ROOT"
+	echo "done building piepline image"
 else
 	echo "what the heck"
 fi

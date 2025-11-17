@@ -10,6 +10,9 @@ class Technique(MitreBase):
         "icsattack",
     ]
     
+    # override properties
+    attack_id = StringProperty(required=True, unique_index=True)
+    
     technique_of = Relationship('MitreBase', 'TECHNIQUEOF', model=RelationshipModel)
     created_by_ref = StringProperty()
     description = StringProperty()

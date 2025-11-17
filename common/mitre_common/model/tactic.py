@@ -7,6 +7,9 @@ class Tactic(MitreBase):
         "icsattack",
     ]
     
+    # override properties
+    attack_id = StringProperty(required=True, unique_index=True)
+    
     name = StringProperty(required=True)
     created_by_ref = StringProperty()
     description = StringProperty()

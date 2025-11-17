@@ -5,20 +5,18 @@ technique_router = APIRouter(prefix="/{tactic_id}/techniques")
 
 @technique_router.get(
     "/",
-    description="retrieving all tactics",
+    description="retrieving all techniques for given tactic",
 )
 def retrieve_all_techniques(request: Request, tactic_id: str = Path(..., description="Parent tactic ID")):
-    return {"tatic_id": tactic_id}
+    techniques =  RepositoryService.get_techniques_per_tactic(tactic_id, request.state.domain)
+    extracted_attack_id_name = {"tactics": [[technique["attack_id"], technique["name"]] for technique in techniques]}
+    return extracted_attack_id_name
 
 @technique_router.get(
     "/{technique_id}",
     description="retrieving all info specific technique",
 )
-def retrieve_matrix(
-    request: Request,
-    tactic_id: str = Path(..., description="Parent tactic ID"),
-    technique_id: str = Path(..., description="Tactic ID, e.g. TA0001")
+def retrieve_technique_details(
+    technique_id: str = Path(..., description="Parent tactic ID"),
 ):
-    return {"tactic_id": tactic_id, "technique_id": technique_id}
-
-# technique_router.include_router(technique_router)
+    return RepositoryService.get_model_attack_id("Technique", technique_id)

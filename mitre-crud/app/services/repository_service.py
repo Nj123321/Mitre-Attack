@@ -1,4 +1,4 @@
-from lib.model import *
+from mitre_common.model import *
 from neomodel import db
 
 from neo4j.graph import Node

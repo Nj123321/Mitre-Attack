@@ -28,6 +28,13 @@ elif [[ "$1" == "build" ]]; then
         -t pipeline \
         "$PROJECT_ROOT"
 	echo "done building piepline image"
+elif [[ "$1" == "webbuild" ]]; then
+	echo "building webservice"
+	docker build \
+        -f "$PROJECT_ROOT/mitre-crud/Dockerfile" \
+        -t mitrecrud \
+        "$PROJECT_ROOT"
+	echo "done building webservice image"
 else
 	echo "what the heck"
 fi

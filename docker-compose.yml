@@ -10,10 +10,10 @@ services:
     environment:
       - NEO4J_AUTH=none      # 🔒 disables authentication
     volumes:
-      - ./data:/data
-      - ./logs:/logs
-      - ./import:/import
-      - ./plugins:/plugins
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+      - ./neo4j/import:/import
+      - ./neo4j/plugins:/plugins
     networks:
       - mitreattack
 

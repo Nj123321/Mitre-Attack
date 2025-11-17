@@ -1,11 +1,11 @@
-import lib.model
-from lib.model import *
-from lib.model.resource_manager import ResourceManager
-from lib.model.collection import Collection
+import mitre_common.model
+from mitre_common.model import *
+from mitre_common.model.resource_manager import ResourceManager
+from mitre_common.model.collection import Collection
 from neomodel import db, install_all_labels, config
 from neomodel.exceptions import DoesNotExist
 import json
-from lib.commons import CustomPipelineKeys, clean_str
+from mitre_common.commons import CustomPipelineKeys, clean_str
 import time
 import uuid as uuidLibrary
 from datetime import datetime

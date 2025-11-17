@@ -1,9 +1,10 @@
 antlr4-python3-runtime==4.9.3
-certifi==2025.10.5
+certifi==2025.11.12
 charset-normalizer==3.4.4
 gitdb==4.0.12
 GitPython==3.1.45
 idna==3.11
+-e ../common
 neo4j==5.28.2
 neomodel==5.5.3
 pytz==2025.2

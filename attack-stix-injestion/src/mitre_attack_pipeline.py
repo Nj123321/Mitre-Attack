@@ -1,4 +1,4 @@
-from components import Loader, Parser, Repository
+from .components import Loader, Parser, Repository
 import os
 
 class MitreAttackPipeline:

@@ -5,7 +5,7 @@
 # dyanmcailly creates filters based on class name -> file mapping
 import json
 import os
-from lib.commons import clean_str, extract_from_json, CustomPipelineKeys
+from mitre_common.commons import clean_str, extract_from_json, CustomPipelineKeys
 from datetime import datetime, timezone
 
 from .repository import Repository
@@ -13,7 +13,7 @@ from .repository import Repository
 # creates id -> object mapping, for faster lookup in repository layer
 # also handles trasnfomations / labels / validation
 class Parser:
-    MAPPING_BASE = "attack-stix-injestion/resources/mappings/"
+    MAPPING_BASE = "resources/mappings/"
     IGNORED_VALUES = [
             "marking-definition", 
             "x-mitre-collection", 

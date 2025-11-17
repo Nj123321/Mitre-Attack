@@ -13,6 +13,7 @@ from .matrix import Matrix
 from .tactic import Tactic
 from .malware import Malware
 from .tool import Tool
+from .resource_manager import ResourceManager
 
 # __all__ = [
 #     "Analytic",

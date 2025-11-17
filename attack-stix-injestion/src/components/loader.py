@@ -19,6 +19,7 @@ class Loader:
             print(f"Cloning new repo from {repo_url} into {dest_dir}")
             Repo.clone_from(repo_url, dest_dir)
         print("finsihed cloning")
+        
     def load_data(self, domain, version):
         """get ATT&CK STIX data for a given domain and version. Domain should be 'enterprise-attack', 'mobile-attack' or 'ics-attack'. Branch should typically be master."""
         src = MemoryStore()
@@ -36,11 +37,7 @@ class Loader:
                 temp.append(x)
             else:
                 temp.append(x.__dict__['_inner'])
-        # verify valid x-mitre data?
         print("finished dictionizing in data")
         with open(fpath, "r") as f:
             temp = json.load(f)["objects"]
         return temp
-    def taxii_server(self):
-        print("taxiserver")
-        stix2.Relatinoship

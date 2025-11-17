@@ -1,8 +1,8 @@
 from enum import Enum
 
 class CustomPipelineKeys(Enum):
-    EXTRACTED_TYPE = "extracted_type"
-    INT_MODIFIED = "int_modified"
+    EXTRACTED_TYPE = "extracted_type" # used for repostiory
+    INT_MODIFIED = "int_modified" # used to for ResourceManager timestamps
 
 def clean_str(label):
     label = label.lower().replace(" ", "").replace("/", "").replace("-","")
@@ -17,6 +17,7 @@ def extract_from_json(json_obj, path, required=False, toDelete=False):
     except KeyError:
         if required:
             raise Exception("unable to find key: " + path + "\n for: \n" + str(json_obj))
+    
 def _recursive_json_dig(parent, operations, jsonobj, iterator, toDelete):
     op = operations[iterator]
 
@@ -34,9 +35,7 @@ def _recursive_json_dig(parent, operations, jsonobj, iterator, toDelete):
                 if not op == "*":
                     return parent.pop(int(op))
             
-            # so nice
             return jsonobj
-            # very nice
         combined = []
         for elem in jsonobj:
             dig_result = _recursive_json_dig(jsonobj, operations, elem, iterator + 1, toDelete)

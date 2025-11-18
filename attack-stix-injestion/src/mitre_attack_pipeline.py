@@ -2,8 +2,8 @@ from .components import Loader, Parser, Repository
 import os
 
 class MitreAttackPipeline:
-    def __init__(self, url):
-        self.loader = Loader(url, os.curdir + "/resources/mitre-attack-data")
+    def __init__(self, use_repo):
+        self.loader = Loader(os.curdir + "/resources/mitre-attack-data", use_repo)
         self.parser = Parser()
         self.repository = Repository()
     

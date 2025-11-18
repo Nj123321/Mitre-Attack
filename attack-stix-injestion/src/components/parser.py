@@ -23,7 +23,6 @@ class Parser:
     
     def __init__(self):
         self.mapping_cache = {}
-        print("initilaizing parser")
     
     """
     Given list of json objects, transform each based on obj["type"] so that:

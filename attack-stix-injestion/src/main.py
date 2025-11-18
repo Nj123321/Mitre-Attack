@@ -1,18 +1,11 @@
-# # hacky shared lib solution
-import sys, os
-
-# PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# if PROJECT_ROOT not in sys.path:
-#     sys.path.append(PROJEC_ROOT)
-# # hacky solution --- endT
-
+import os
 from .mitre_attack_pipeline import MitreAttackPipeline
 
-attack = MitreAttackPipeline("https://github.com/mitre-attack/attack-stix-data.git")
+attack = MitreAttackPipeline(os.getenv("DOWNLOAD_MITRE_DATA", False))
 
-d = os.getenv("DOMAIN", "enterprise-attack")
-dver = os.getenv("DOMAINVER", "17.1")
-for domain in ["enterprise-attack", "mobile-attack"]:
-    for version in ["17.0", "17.1", "18.0", "18.1"]:
-        # input("runing: " + version)it
+domain_list = os.getenv("DOMAIN").split(",")
+ver_list = os.getenv("DOMAINVER").split(",")
+
+for domain in domain_list:
+    for version in ver_list:
         attack.run(domain, version)

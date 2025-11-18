@@ -1,5 +1,6 @@
+from mitre_common.model._mitre_base import MitreBase
 from mitre_common.model import *
-from neomodel import db
+from neomodel import db, DoesNotExist
 
 from neo4j.graph import Node
 
@@ -8,37 +9,52 @@ ALLOWED_RESOURCES = {model.__name__: model for model in MODEL_LIST}
 class RepositoryService:
     related_nodes_query = """
 MATCH (n {stix_uuid: $uuid})-[r]-(m)
-WHERE $label IS NULL OR $label IN labels(m)
 RETURN type(r), m
 """
 
     get_matrix_query = """
-MATCH (n:Matrix)
-WHERE $dynamic_label IN labels(n)
-OPTIONAL MATCH (n)-[:CONTAINS]->(t1)
-OPTIONAL MATCH (t1)<-[:TECHNIQUEOF]-(t2)
+MATCH (n:Matrix {attack_id: $attack_id})
+OPTIONAL MATCH (n)-[:CONTAINS]->(t1:Tactic)
+OPTIONAL MATCH (t1)<-[:TECHNIQUEOF]-(t2:Technique)
+OPTIONAL MATCH (t2)<-[:SUBTECHNIQUEOF]-(t3:SubTechnique)
 
-WITH n, t1 as tactics, collect(t2) AS techniques
+WITH n, t1, t2, collect(DISTINCT t3) AS subtechniques
 WITH n,
-     collect({
-         tactic: tactics,
+     t1 AS tactic,
+     collect(DISTINCT {
+         technique: t2,
+         subtechniques: subtechniques
+     }) AS techniques
+WITH n,
+     collect(DISTINCT {
+         tactic: tactic,
          techniques: techniques
      }) AS tactic_groups
 
-RETURN n AS matrix, tactic_groups
-"""
-    get_tactics_related_to_matrix = """
-    MATCH (m:Matrix)-[:CONTAINS]->(t:Tactic)
-WHERE $dynamic_label IN labels(m)
-RETURN t;
+RETURN 
+    n AS matrix,
+    tactic_groups
 """
 
-    get_techniques = """
-MATCH (m)-[r:TECHNIQUEOF]-(n {attack_id: $attack_id})
-WHERE $label IN labels(m)
-RETURN m
-"""
+    get_node_attack_id = """
+    MATCH (n {attack_id: $attack_id})
+    RETURN n
+    """
 
+    @classmethod
+    def get_assosciations_related_to_node(clz, condition, relation_type, condition_two):
+        print(condition)
+        query = f"""
+    MATCH (n{condition})-[{relation_type}]-(m{condition_two})
+    RETURN collect(m)
+    """
+        results, _ = db.cypher_query(query)
+        return results[0][0]
+
+    @classmethod
+    def construct_parameter_condition(clz, attribute, value):
+        return f'{{{attribute}: "{value}"}}'
+    
     @classmethod
     def get_models_domain(clz, resource, domain):
         if resource not in ALLOWED_RESOURCES:
@@ -47,39 +63,60 @@ RETURN m
         return found_object.__properties__
 
     @classmethod
-    def get_model_uuid(clz, resource, uuid):
-        if resource not in ALLOWED_RESOURCES:
-            raise ValueError(f"resource \"{resource}\" not recognized")
-        found_object = ALLOWED_RESOURCES[resource].nodes.get(stix_uuid=uuid)
-        return found_object.__properties__
+    def get_model_uuid(clz, uuid):
+        model = find_model_from_type(uuid.split("--")[0])
+        # if resource not in ALLOWED_RESOURCES:
+        #     raise ValueError(f"resource \"{resource}\" not recognized")
+        # try:
+        found_object = model.nodes.get(stix_uuid=uuid)
+        # except DoesNotExist:
+            # raise ValueError(f"{resource} with uuid {uuid} does not exist")
+        if not isinstance(found_object, list):
+            found_object = [found_object]
+        return found_object
     
     @classmethod
-    def get_model_attack_id(clz, resource, attack_id):
-        if resource not in ALLOWED_RESOURCES:
-            raise ValueError(f"resource \"{resource}\" not recognized")
-        found_object = ALLOWED_RESOURCES[resource].nodes.get(attack_id=attack_id)
-        return found_object.__properties__
+    def get_model_attack_id(clz, attack_id):
+        node, _ = db.cypher_query(clz.get_node_attack_id, {'attack_id': attack_id})
+        found_nodes = []
+        for obj in node[0]:
+            found_nodes.append(find_model_from_type(obj._properties["type"]).inflate(obj))
+        return found_nodes
     
     @classmethod
-    def get_related_nodes(clz, uuid, label=None):
-        params = {'uuid': uuid}
-        params["label"] = label if label else None
-        return db.cypher_query(clz.related_nodes_query, params)
+    def get_related_nodes(clz, uuid):
+        return db.cypher_query(clz.related_nodes_query, {'uuid': uuid})
     
     @classmethod
     def get_matrix(clz, domain):
-        matrix, _ = db.cypher_query(clz.get_matrix_query, {"dynamic_label": domain})
+        matrix, _ = db.cypher_query(clz.get_matrix_query, {"attack_id": domain})
         if len(matrix) == 0:
             return None
         return matrix
     
     @classmethod
-    def get_techniques_per_tactic(clz, attack_id, domain):
-        techniques, _ = db.cypher_query(clz.get_techniques, {'attack_id': attack_id, 'label': domain})
-        techniques = [batch[0] for batch in techniques]
-        return techniques
+    def get_sub_techniques_per_technique(clz, attack_id):
+        test = clz.get_assosciations_related_to_node(
+            ":Technique " + clz.construct_parameter_condition("attack_id", attack_id), 
+            ":SUBTECHNIQUEOF", 
+            ":SubTechnique"
+        )
+        return test
+    
+    @classmethod
+    def get_techniques_per_tactic(clz, attack_id):
+        test = clz.get_assosciations_related_to_node(
+            ":Tactic " + clz.construct_parameter_condition("attack_id", attack_id), 
+            ":TECHNIQUEOF", 
+            ":Technique"
+        )
+        return test
     
     @classmethod
     def get_tacitcs_in_matrix(clz, domain):
-        tactics, _ = db.cypher_query(clz.get_tactics_related_to_matrix, {"dynamic_label": domain})
-        return [batch[0] for batch in tactics]
+        test = clz.get_assosciations_related_to_node(
+            clz.construct_parameter_condition("attack_id", domain), 
+            ":CONTAINS", 
+            ""
+        )
+        return test

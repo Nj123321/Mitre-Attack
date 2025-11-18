@@ -1,47 +1,58 @@
-from fastapi import APIRouter, HTTPException, Query, Request, Path
+from fastapi import APIRouter, HTTPException, Query, Request, Depends
+from typing import Optional
 from app.services.repository_service import RepositoryService, ALLOWED_RESOURCES
-
-from neomodel import DoesNotExist
 
 from typing import Literal
 
 router = APIRouter(prefix="/model")
 
+
+def either_attack_id_or_uuid(
+    uuid: Optional[str] = Query(None),
+    attack_id: Optional[str] = Query(None),
+):
+    if not uuid and not attack_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Either 'uuid' or 'attack_id' must be provided."
+        )
+    if uuid and attack_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide only one of 'uuid' or 'attack_id', not both."
+        )
+    if uuid:
+        return {"uuid": uuid}
+    return {"attack_id": attack_id}
+
 @router.get(
-    "/{resource_id}",
-    description="retrieving all tactics",
+    "/",
+    description="retrieving specifics for a model",
 )
 def retrieve_matrix(
     request: Request,
-    resource_id: str = Path(..., description="Tactic ID, e.g. TA0001")
+    resource_id = Depends(either_attack_id_or_uuid)
 ):
-    return {"tactic_id: " : tactic_id}
+    found_objects = []
+    if "attack_id" in resource_id:
+        found_objects = RepositoryService.get_model_attack_id(resource_id["attack_id"])
+    else:
+        found_objects = RepositoryService.get_model_uuid(resource_id["uuid"])
+    response = []
+    for object in found_objects:
+        object = object.__properties__
+        formatted_resource = {}
+        if object.get("revoked", False):
+            continue
+        formatted_resource["object"] = object
+        results, _ = RepositoryService.get_related_nodes(object["stix_uuid"])
+        for rel_type, related_node in results:
+            formatted_resource.setdefault(rel_type, []).append({
+                "uuid": related_node["stix_uuid"],
+                "name": related_node["name"],
+                "attack_id": related_node["attack_id"],
+            })
+        response.append(formatted_resource)
+    # raise HTTPException(status_code=404, detail=f"unable to find #{res} with uuid: #{uuid}")
 
-# for resource in ALLOWED_RESOURCES:
-
-#     async def handler(
-#         request: Request,
-#         uuid: str = Query(..., description="UUID of the object"),
-#         res=resource,
-#     ):
-#         response = {}
-
-#         try:
-#             response["object"] = RepositoryService.get_model_uuid(res, uuid)
-#         except DoesNotExist:
-#             raise HTTPException(status_code=404, detail=f"unable to find #{res} with uuid: #{uuid}")
-#         results, _ = RepositoryService.get_related_nodes(uuid, request.state.domain)
-
-#         for rel_type, related_node in results:
-#             response.setdefault(rel_type, []).append(related_node._properties)
-
-#         return response
-    
-#     handler.__name__ = f"get_{resource}_by_uuid"
-
-#     router.add_api_route(
-#         path=f"/{resource}",
-#         endpoint=handler,
-#         methods=["GET"],
-#         responses={404: {"description": "unable to find #{res} with uuid: #{uuid}"}}
-#     )
+    return response

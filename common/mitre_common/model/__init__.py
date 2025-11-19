@@ -14,6 +14,7 @@ from .tactic import Tactic
 from .malware import Malware
 from .tool import Tool
 from .resource_manager import ResourceManager
+from .asset import Asset
 
 # __all__ = [
 #     "Analytic",
@@ -39,6 +40,7 @@ MODEL_LIST = [
     Tactic,
     Malware,
     Tool,
+    Asset,
 ]
 
 def find_model_from_type(model_type):
@@ -83,6 +85,10 @@ def find_model_from_type(model_type):
                 return Matrix
             case "x-mitre-tactic":
                 return Tactic
+            
+            # ics specific
+            case "x-mitre-asset":
+                return Asset
     except KeyError:
         pass
     raise Exception("Could match model with: \"" + model_type + "\"")

@@ -18,7 +18,6 @@ class Parser:
             "marking-definition", 
             "x-mitre-collection", 
             "identity",
-            "x-mitre-asset"
         ]
     
     def __init__(self):

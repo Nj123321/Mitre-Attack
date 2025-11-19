@@ -11,6 +11,7 @@ class MitreBase(StructuredNode):
     attack_id = StringProperty()
     modified = StringProperty(required=True)
     created = StringProperty(required=True)
+    type = StringProperty()
     # skipping object_marking_refs? - marking-definintoin model
     
     uses = RelationshipTo('MitreBase', 'USES', model=RelationshipModel)

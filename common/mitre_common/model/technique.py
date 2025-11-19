@@ -31,3 +31,4 @@ class Technique(MitreBase):
     x_mitre_platforms = JSONProperty()
     x_mitre_remote_support = StringProperty()
     x_mitre_version = StringProperty()
+    x_mitre_is_subtechnique = BooleanProperty()

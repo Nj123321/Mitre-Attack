@@ -1,5 +1,5 @@
 [project]
-name = "lib"
+name = "mitre_common"
 version = "0.1.0"
 dependencies = [
     "neomodel>=5.5.3"

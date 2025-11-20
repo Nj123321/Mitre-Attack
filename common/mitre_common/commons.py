@@ -3,6 +3,7 @@ from enum import Enum
 class CustomPipelineKeys(Enum):
     EXTRACTED_TYPE = "extracted_type" # used for repostiory
     INT_MODIFIED = "int_modified" # used to for ResourceManager timestamps
+    CUSTOM_NODE_LABELS = "mapipieline_added_labels"
 
 def clean_str(label):
     label = label.lower().replace(" ", "").replace("/", "").replace("-","")

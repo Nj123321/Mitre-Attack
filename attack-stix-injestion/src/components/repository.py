@@ -200,7 +200,7 @@ class Repository:
                     
                 # add any (new) custom labels to object
                 # TODO: Clear labels if operation is updated
-                parsed_labels = obj_dict.pop("mapipieline_added_labels")
+                parsed_labels = obj_dict.pop(CustomPipelineKeys.CUSTOM_NODE_LABELS)
                 for label in parsed_labels:
                     if label not in obj_class.__optional_labels__:
                         raise Exception("unexpected label: " + label + " for class: " + str(obj_class))

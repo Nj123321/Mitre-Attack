@@ -89,22 +89,13 @@ class Parser:
     # extract out keys, etc, transfomration, not changing keys just restructuring
     def _transform_fields(self, json_obj):
         attributes_mapping = self.load_mapping_cache(json_obj["type"])["attributes"]
-        new_json = {}
         # greedily match mappings
         for key in attributes_mapping:
             search_path, required = self._filter_query_path(attributes_mapping[key])
             extracted = extract_from_json(json_obj, search_path, required, True)
             if extracted:
-                new_json[key] = extracted
-        new_json["mapipieline_added_labels"] = json_obj.pop("mapipieline_added_labels")
-        if json_obj:
-            pass
-            # raise Exception(obj_type + " why is this not empty: " + str(json_obj))
-        
-        # put back the data
-        for k, v in new_json.items():
-            json_obj[k] = v
-
+                json_obj[key] = extracted
+                
     # extracts and stores custom labels in "mapipieline_added_labels"
     def _add_labels(self, obj):
         labels = set()
@@ -118,7 +109,7 @@ class Parser:
                 for label in extracted_labels:
                     label = clean_str(label)
                     labels.add(label)
-        obj["mapipieline_added_labels"] = labels
+        obj[CustomPipelineKeys.CUSTOM_NODE_LABELS] = labels
         
     def _filter_query_path(self, path):
         required = False

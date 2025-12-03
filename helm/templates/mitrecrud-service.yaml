@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mitrecrud
+spec:
+  type: NodePort
+  selector:
+    app: mitrecrud
+  ports:
+    - port: 8000
+      targetPort: {{ .Values.mitrecrud.port }}
+      nodePort: {{ .Values.mitrecrud.nodePort }}

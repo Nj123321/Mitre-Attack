@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mitre-pipeline
+spec:
+  schedule: {{ .Values.pipeline.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: pipeline
+              image: {{ .Values.pipeline.image }}
+              imagePullPolicy: {{ .Values.pipeline.imagePullPolicy }}
+              env:
+                - name: DATABASE_URL
+                  value: "bolt://{{ .Values.pipeline.database.username }}:{{ .Values.pipeline.database.password }}@{{ .Values.pipeline.database.host }}:{{ .Values.pipeline.database.port }}"
+                - name: DOMAINVER
+                  value: {{ .Values.pipeline.env.DOMAINVER | quote }}
+                - name: DOMAIN
+                  value: {{ .Values.pipeline.env.DOMAIN | quote }}

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: mitre-stack
+version: 0.1.0
+description: MITRE ATT&CK stack with Neo4j, CRUD API, and pipeline
+
+dependencies:
+  - name: neo4j
+    version: "5.21.0"
+    repository: "https://helm.neo4j.com/neo4j"

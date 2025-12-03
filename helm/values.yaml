@@ -1,0 +1,37 @@
+neo4j:
+  neo4j:
+    name: neo4j
+    password: neo4jpassword
+  fullnameOverride: neo4j
+  volumes:
+    data:
+      mode: defaultStorageClass
+      defaultStorageClass:
+        accessModes:
+          - ReadWriteOnce
+        requests:
+          storage: 10Gi
+
+mitrecrud:
+  image: "mitrecrud:latest"
+  imagePullPolicy: IfNotPresent
+  port: 8000
+  nodePort: 30080
+  database:
+    username: neo4j
+    password: neo4jpassword
+    host: neo4j
+    port: 7687
+
+pipeline:
+  image: "pipeline:latest"
+  imagePullPolicy: IfNotPresent
+  schedule: "0 * * * *"   # every hour
+  database:
+    username: neo4j
+    password: neo4jpassword
+    host: neo4j
+    port: 7687
+  env:
+    DOMAINVER: "18.1"
+    DOMAIN: "enterprise-attack,ics-attack,mobile-attack"

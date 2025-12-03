@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mitre-pipeline-init
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: pipeline
+          image: {{ .Values.pipeline.image }}
+          imagePullPolicy: {{ .Values.pipeline.imagePullPolicy }}
+          env:
+            - name: DATABASE_URL
+              value: "bolt://{{ .Values.pipeline.database.username }}:{{ .Values.pipeline.database.password }}@{{ .Values.pipeline.database.host }}:{{ .Values.pipeline.database.port }}"
+            - name: DOMAINVER
+              value: {{ .Values.pipeline.env.DOMAINVER | quote }}
+            - name: DOMAIN
+              value: {{ .Values.pipeline.env.DOMAIN | quote }}

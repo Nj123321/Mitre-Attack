@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mitrecrud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mitrecrud
+  template:
+    metadata:
+      labels:
+        app: mitrecrud
+    spec:
+      containers:
+        - name: mitrecrud
+          image: {{ .Values.mitrecrud.image }}
+          imagePullPolicy: {{ .Values.mitrecrud.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.mitrecrud.port }}
+          env:
+            - name: DATABASE_URL
+              value: "bolt://{{ .Values.mitrecrud.database.username }}:{{ .Values.mitrecrud.database.password }}@{{ .Values.mitrecrud.database.host }}:{{ .Values.mitrecrud.database.port }}"

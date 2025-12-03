@@ -3,6 +3,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 from .routes import models
 from .routes import matrix
+import os
+from neomodel import config
+
+config.DATABASE_URL = os.getenv("DATABASE_URL")
 
 app = FastAPI()
 

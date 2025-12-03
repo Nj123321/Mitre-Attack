@@ -207,6 +207,7 @@ class Repository:
                     db.cypher_query(f"MATCH (n:{obj_class.__name__}) WHERE id(n)={obj_instance.element_id.split(":")[-1]} SET n:{label}")
 
                 self.cached_instances[obj_instance.stix_uuid] = obj_instance
+        print("batch for: " + str(model_type) + "completed")
         
     # returns bundles of objects that need change
     def filter_resources(self, resource_mapping, domain, exclude_relationships=True):

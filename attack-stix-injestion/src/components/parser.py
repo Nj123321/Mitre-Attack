@@ -47,7 +47,8 @@ class Parser:
             # transform object
             self._add_required_meta_data_fields(obj)
             self._derive_attributes(obj)
-            self._add_labels(obj)
+            if not obj["type"] == "relationship":
+                self._add_labels(obj)
             self._transform_fields(obj)
             
             extracted_type = obj.pop(CustomPipelineKeys.EXTRACTED_TYPE)
